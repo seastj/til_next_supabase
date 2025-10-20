@@ -66,7 +66,7 @@ const userLocalStore = create<UserState>()(
 
 // 3 단계 - custom Hook 정의
 export const useUserState = () => {
-  const { user, isLoggedIn, isLoading, login, logout, updateUser, setLoading } =
+  const { user, isLoggedIn, isLoading, login, logout, updateUser, setloading } =
     userLocalStore();
-  return { user, isLoggedIn, isLoading, login, logout, updateUser, setLoading };
+  return { user, isLoggedIn, isLoading, login, logout, updateUser, setloading };
 };

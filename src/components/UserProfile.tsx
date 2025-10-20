@@ -22,7 +22,7 @@ import { useUserState } from '@/stores/UserStore';
  */
 export default function UserProfile() {
   // Zustand 스토어에서 사용자 관련 상태와 액션들을 가져옵니다
-  const { user, isLoggedIn, isLoading, login, logout, updateUser, setLoading } =
+  const { user, isLoggedIn, isLoading, login, logout, updateUser, setloading } =
     useUserState();
 
   // 로컬 상태: 편집 모드와 편집 중인 이름
@@ -36,7 +36,7 @@ export default function UserProfile() {
    * 실제 프로젝트에서는 API 호출로 대체되어야 합니다.
    */
   const handleLogin = () => {
-    setLoading(true);
+    setloading(true);
     // 시뮬레이션된 로그인 (실제로는 API 호출)
     setTimeout(() => {
       login({
