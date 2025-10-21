@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useTodoStore } from '@/stores/todoStore';
+import { useTodoStore } from '@/stores/TodoStore';
 import { useState } from 'react';
 
 /**
