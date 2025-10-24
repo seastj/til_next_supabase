@@ -1,8 +1,8 @@
 # 사이트 라우터 구조
 
-## 1. 사이트 맵(/app/폴더)
+## 1. 사이트 맵
 
-- / : page.tsx
+- / : Home
 - /signin : 로그인 페이지
 - /signup : 회원가입 페이지
 - /forget-password : 비밀번호 찾기
