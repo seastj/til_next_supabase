@@ -1,10 +1,9 @@
-'use client';
-import { useUserSelection } from '@/hooks/useQueryIntergration';
 // 사용자 목록 컴포넌트
-// useQuery 를 사용해서 사용자 목록 가져오고 표시함.
+// useQuery 를 사용해서 사용자 목록가져오고 표시함.
 // 로딩상태, 에러상태, 데이터 표시 처리
-
-import { useUsers } from '@/hooks/useUsers';
+'use client';
+import { useUserSelection } from '@/hooks/useQueryIntegration';
+import { useUser, useUsers } from '@/hooks/useUsers';
 
 const UsersList = () => {
   // 사용자 목록 가져오기
@@ -12,11 +11,11 @@ const UsersList = () => {
   // data 리턴되는 값, isLoading 로딩상태, error 에러
   const { data: users, isLoading, error } = useUsers();
 
-  // 사용자 선택 기능 가져오기
+  // 사용자 선택 기능을 가져오기
   const { selectedUserId, selectUser, clearSelection } = useUserSelection();
 
-  // 상황에 따라서 출력을 달리함
-  // 로딩 상태일때
+  // 상황에 따라서 출력을 달리함.
+  // 로딩 상태일 때
   if (isLoading) {
     return (
       <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg'>
@@ -27,7 +26,7 @@ const UsersList = () => {
       </div>
     );
   }
-  // 에러 상태일때
+  // 에러 상태일 때
   if (error) {
     return (
       <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg'>
@@ -38,6 +37,7 @@ const UsersList = () => {
       </div>
     );
   }
+
   return (
     <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg space-y-4'>
       {/* 컴포넌트 제목 */}

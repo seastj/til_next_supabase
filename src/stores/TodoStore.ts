@@ -1,6 +1,7 @@
 // Todo Store - zustand 로 카운터 관리
 
 import { Todo, TodoState } from '@/types/types';
+import { stat } from 'fs';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -32,8 +33,7 @@ const todoState = create<TodoState>()((set, get) => ({
   // state 를 다루는 액션의 기능 작성
   addTodo: (text: string) => {
     const newTodo: Todo = {
-      // https://developer.mozilla.org/ko/docs/Web/API/Window/crypto
-      id: crypto.randomUUID(),
+      id: '',
       text: text,
       completed: false,
       createdAt: new Date(),

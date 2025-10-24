@@ -1,5 +1,5 @@
 // 게시글 CRUD
-// useQuery 와 useMutation 활용
+// useQuery 와 useMutaion 활용
 'use client';
 
 import {
@@ -8,10 +8,10 @@ import {
   usePosts,
   useUpdatePost,
 } from '@/hooks/usePosts';
-import { useUserSelection } from '@/hooks/useQueryIntergration';
+import { useUserSelection } from '@/hooks/useQueryIntegration';
 import { useState } from 'react';
 
-const PostManager = () => {
+const Postmanager = () => {
   // 선택된 사용자 정보
   const { selectedUserId } = useUserSelection();
 
@@ -22,7 +22,7 @@ const PostManager = () => {
     error,
   } = usePosts(selectedUserId || undefined);
 
-  // Mutation 훅들
+  // Mutaion 훅들
   const createPostMutation = useCreatePost();
   const updatePostMutation = useUpdatePost();
   const deletePostMutation = useDeletePost();
@@ -35,11 +35,13 @@ const PostManager = () => {
 
   // 새 게시글 생성 처리
   const handleCreatePost = async () => {
-    if (!newPost.title.trim() || !newPost.body.trim()) return;
+    if (!newPost.title.trim() || !newPost.body.trim()) {
+      return;
+    }
     try {
-      // Mutation객체.mutateAsync : 비동기로 뮤테이션을 실행하는 함수이다.
+      // Mutaion객체.mutateAsync : 비동기로 뮤테이션을 실행하는 함수이다.
       await createPostMutation.mutateAsync({
-        // number가 들어와야 한다.
+        // number 가 들어와야 해요.
         userId: selectedUserId || 1,
         title: newPost.title,
         body: newPost.body,
@@ -48,7 +50,7 @@ const PostManager = () => {
       setNewPost({ title: '', body: '' });
       setIsCreating(false);
     } catch (error) {
-      console.log('새글 등록 실패 : ', error);
+      console.log('새글 등록 실패:', error);
     }
   };
 
@@ -76,11 +78,13 @@ const PostManager = () => {
 
   // 게시글 삭제 처리
   const handleDeletePost = async (id: number) => {
-    if (!confirm('게시글 삭제?')) return;
+    if (!confirm('게시글 삭제할래 ? ')) {
+      return;
+    }
     try {
       await deletePostMutation.mutateAsync(id);
     } catch (error) {
-      console.log('삭제 실패 : ', error);
+      console.log('삭제 실패: ', error);
     }
   };
 
@@ -289,4 +293,4 @@ const PostManager = () => {
   );
 };
 
-export default PostManager;
+export default Postmanager;

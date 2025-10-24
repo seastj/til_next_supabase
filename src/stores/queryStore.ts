@@ -39,6 +39,16 @@ const queryLocalState = create<QueryState>()(
 );
 // 3. 훅 정의
 export const useQueryStore = () => {
-  const ctx = queryLocalState();
-  return ctx;
+  const {
+    selectedPostId,
+    setSelectedPostId,
+    selectedUserId,
+    setSelectedUserId,
+  } = queryLocalState();
+  return {
+    selectedPostId,
+    setSelectedPostId,
+    selectedUserId,
+    setSelectedUserId,
+  };
 };

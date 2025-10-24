@@ -1,1785 +1,2208 @@
-# React Query
+# 📝 마크다운 & Tiptap 에디터 수업
 
-- https://tanstack.com/query/latest
-- https://tanstack.com/query/latest/docs/framework/react/overview
+## 🎯 학습 목표
 
-## 1. 외부 API 연동라이브러리
+이 수업을 통해 다음을 학습할 수 있습니다:
 
-- 용도는 외부 API 호출시 처리 역할
-- XHR, fetch, axios, Next의 fetch 도 있음.
-- React 프로젝트는 `axios` 와 `React Query` 가 필수
-- Next 프로젝트는 `axios` 와 `React Query` 가 선택사항
+### 📚 마크다운 에디터 (@uiw/react-md-editor)
 
-## 2. React Query 가 필요한 이유
+- **기본 사용법**: 마크다운 에디터 설치 및 기본 설정
+- **고급 기능**: 미리보기, 커스텀 툴바, 다크 모드
+- **실무 적용**: 블로그 에디터, 이미지 삽입 가이드
+- **문제 해결**: 일반적인 에러 및 해결 방법
 
-- 사견 : Next.js 에서는 선택사항(fetch 사용시)
+### 🚀 Tiptap 에디터
 
-### 2.1. React 에서 axios 또는 fetch 를 이용한 호출의 경우
+- **기본 사용법**: Tiptap 에디터 설치 및 기본 설정
+- **확장 기능**: 이미지, 링크, 색상, 정렬 등 고급 기능
+- **아이콘 툴바**: Lucide React를 활용한 직관적인 툴바
+- **완전한 에디터**: 모든 기능이 포함된 전문적인 에디터
+- **파일 업로드**: 로컬 파일 업로드 + URL 입력 지원
 
-- 동일한 API 호출을 중복해서 여러 번 호출함.
-- 캐싱이 없음.
-- 동기화 불가능.
-- 에러처리가 복잡함.
-- 로딩 상태 관리가 복잡함.
+## 🏗️ 프로젝트 구조
 
-### 2.2. React 에서 React Query 를 이용한 호출의 경우
+```
+src/
+├── app/
+│   ├── page.tsx              # 메인 페이지 (모든 에디터 예제)
+│   ├── blog/
+│   │   └── page.tsx          # 블로그 에디터 전용 페이지
+│   └── layout.tsx            # 앱 레이아웃
+├── components/
+│   ├── ui/
+│   │   └── button.tsx        # Shadcn UI 버튼 컴포넌트
+│   ├── MarkdownEditor.tsx    # 기본 마크다운 에디터
+│   ├── BlogEditor.tsx        # 블로그용 마크다운 에디터
+│   ├── AdvancedEditor.tsx    # 고급 마크다운 에디터
+│   ├── CustomToolbarEditor.tsx # 커스텀 툴바 에디터
+│   ├── DarkModeEditor.tsx    # 다크 모드 에디터
+│   ├── ImageEditor.tsx       # 이미지 삽입 가이드
+│   ├── TiptapEditor.tsx      # 기본 Tiptap 에디터
+│   ├── AdvancedTiptapEditor.tsx # 고급 Tiptap 에디터
+│   ├── DarkTiptapEditor.tsx  # 다크 모드 Tiptap 에디터
+│   ├── TiptapBlogEditor.tsx  # 블로그용 Tiptap 에디터
+│   └── FullFeaturedTiptapEditor.tsx # 완전한 기능 에디터
+├── hooks/
+│   ├── usePosts.ts           # 포스트 관련 훅
+│   ├── useTodos.ts           # 할일 관련 훅
+│   ├── useUsers.ts           # 사용자 관련 훅
+│   └── useQueryIntegration.ts # React Query 통합 훅
+├── lib/
+│   ├── api.ts                # API 관련 유틸리티
+│   ├── query-client.ts       # React Query 클라이언트 설정
+│   └── utils.ts              # 공통 유틸리티
+├── stores/
+│   ├── CounterStore.ts       # 카운터 상태 관리
+│   ├── TodoStore.ts          # 할일 상태 관리
+│   ├── UserStore.ts        # 사용자 상태 관리
+│   ├── ThemeStore.ts         # 테마 상태 관리
+│   └── queryStore.ts         # 쿼리 상태 관리
+└── types/
+    └── types.ts              # TypeScript 타입 정의
+```
 
-- 자동 캐싱.
-- 중복 요청 방지.
-- 자동 동기화.
-- 간단한 에러처리.
-- 자동 로딩 상태 관리.
+## 🛠️ 기술 스택
 
-## 3. React Query 란?
+### Frontend
 
-- 데이터를 쉽게 가져오고, 자동으로 데이터를 업데이트 해주는 도구
-- `fresh 한 데이터` : 최신 데이터를 말함.
-- `stale 한 테이터` : 과거 데이터를 말함.
-- 서버 상태를 불러오고, 캐싱하며, 지속적으로 동기화하고, 업데이트하는 라이브러리
+- **Next.js 14**: App Router, SSR/SSG 지원
+- **React 18**: 최신 React 기능 활용
+- **TypeScript**: 타입 안전성 보장
+- **Tailwind CSS**: 유틸리티 우선 CSS 프레임워크
 
-## 4. 설치
+### 에디터 라이브러리
 
-- 주의사항 : React Query 버전에 따라서 문법이 다름
-- https://tanstack.com/query/latest/docs/framework/react/overview
+- **@uiw/react-md-editor**: 마크다운 에디터
+- **@tiptap/core**: Tiptap 코어 라이브러리
+- **@tiptap/react**: Tiptap React 통합
+- **@tiptap/starter-kit**: 기본 확장 패키지
+
+### 확장 기능
+
+- **@tiptap/extension-image**: 이미지 삽입
+- **@tiptap/extension-link**: 링크 삽입
+- **@tiptap/extension-color**: 글자색상
+- **@tiptap/extension-text-style**: 텍스트 스타일
+- **@tiptap/extension-text-align**: 텍스트 정렬
+- **@tiptap/extension-highlight**: 하이라이트
+- **@tiptap/extension-underline**: 밑줄
+- **@tiptap/extension-superscript**: 위첨자
+- **@tiptap/extension-subscript**: 아래첨자
+
+### UI/UX
+
+- **Lucide React**: 아이콘 라이브러리
+- **Shadcn UI**: 컴포넌트 라이브러리
+- **Radix UI**: 접근성 우선 컴포넌트
+
+### 상태 관리
+
+- **Zustand**: 경량 상태 관리
+- **React Query**: 서버 상태 관리
+- **React Hooks**: 로컬 상태 관리
+
+## 📋 목차
+
+1. [마크다운 에디터 설치 및 기본 사용법](#-1-마크다운-에디터-설치)
+2. [마크다운 에디터 고급 기능](#-2-마크다운-에디터-고급-기능)
+3. [마크다운 에디터 실무 프로젝트](#-3-마크다운-에디터-실무-프로젝트)
+4. [Tiptap 에디터 설치 및 기본 사용법](#-1-tiptap-에디터-설치)
+5. [Tiptap 에디터 고급 기능](#-2-tiptap-고급-기능)
+6. [Tiptap 에디터 완전한 에디터](#-3-tiptap-완전한-에디터)
+7. [트러블슈팅](#-4-트러블슈팅)
+8. [실행 방법](#-5-실행-방법)
+9. [학습 과제](#-6-학습-과제)
+10. [추가 자료](#-7-추가-자료)
+
+## 🛠️ 1. 설치 과정
+
+### 1.1 패키지 설치
 
 ```bash
-npm install @tanstack/react-query @tanstack/react-query-devtools
+npm install @uiw/react-md-editor
 ```
 
-## 5. 환경 구성
+### 1.2 TypeScript 타입 정의 (선택사항)
 
-### 5.1. React Query 설정
-
-- `/src/lib/query-client.ts 파일` 생성
-
-```ts
-import { QueryClient } from '@tanstack/react-query';
-
-/**
- * 핵심 내용 설정
- * - 서버 상태 관리를 위한 모든 기능을 제공함.
- * - 캐싱 : API 응답을 메모리에 저장하여 중복 요청 방지
- * - 동기화 : 서버와 클라이언트 상태 동기화
- * - 백그라운드 업데이트 : 데이터 자동 갱신
- * - 에러 처리 : 네트워크 오류 및 서버 오류 처리
- */
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    // 데이터 읽기 관련 설정
-    queries: {
-      // 데이터가 오래된 것으로 간주하는 시간(5분)
-      staleTime: 5 * 60 * 1000,
-      // 캐시에서 데이터를 제거하는 시간 (10 분)
-      gcTime: 10 * 60 * 1000,
-      // 자동으로 데이터를 다시 가져오는 간격 (비활성화)
-      refetchInterval: false,
-      // 윈도우 포커스 시 자동 리페치 (활성화)
-      refetchOnWindowFocus: true,
-      // 네트워크 재연결시 자동 리패치
-      refetchOnReconnect: true,
-      // 에러 발생시 재시도 횟수 (3회)
-      retry: 3,
-      // 재시도 간격
-      retryDelay: attempIndex => Math.min(1000 * 2 ** attempIndex, 30000),
-    },
-    // 데이터 수정 관련 설정
-    mutations: {
-      // 뮤테이션 에러 발생시 재시도 횟수 (1회)
-      retry: 1,
-      // 뮤테이션 재시도 간격
-      retryDelay: 1000,
-    },
-  },
-});
+```bash
+npm install --save-dev @types/marked
 ```
 
-### 5.2. Provider 설정
+### 1.3 설치 확인
 
-- `/src/components/providers 폴더` 생성
-- `/src/components/providers/QueryProvider.tsx 파일` 생성
+`package.json`에서 설치된 패키지 확인:
+
+```json
+{
+  "dependencies": {
+    "@uiw/react-md-editor": "^4.0.8"
+  }
+}
+```
+
+## 🚀 2. 기본 사용법
+
+### 2.1 기본 컴포넌트 생성
+
+**파일 경로**: `src/components/MarkdownEditor.tsx`
+
+#### 📝 코드 설명:
 
 ```tsx
-/**
- * QueryClient 를 App 전체에 제공함
- * - 모든 하위 컴포넌트에서 useQuery, useMutaion 등의 훅을 사용할 수 있음
- */
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 
-export default function QueryProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // React 라면 아래 설정은 달라진다.
-  // 현재 Next.js 에다가 세팅을 진행함
-  // 서버 사이드 렌더링을 위한 QueryClient 인스턴스 생성
-  // 각 요청마다 새로운 QueryClien 를 생성하여 상태 구분함.
-  const [client, setClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            // 서버 사이드에서는 즉시 staleTime을 0으로 처리
-            staleTime: 0,
-            // 서버 사이드에서는 캐시하지 않음
-            gcTime: 0,
-          },
-        },
-      })
-  );
+// 동적 임포트로 SSR 문제 해결
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
+
+export default function MarkdownEditor() {
+  const [value, setValue] = useState('**Hello world!!!**');
+
   return (
-    <QueryClientProvider client={client}>
-      {children}
-      {/* npm run dev 상태에서만 개발자도구 보기 */}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools
-          initialIsOpen={false}
-          buttonPosition='bottom-right'
-        />
-      )}
-    </QueryClientProvider>
+    <div className='container'>
+      <MDEditor value={value} onChange={setValue} height={400} />
+    </div>
   );
 }
 ```
 
-### 5.3. 앱 전체에 Provider 적용
+#### 🔍 각 부분 상세 설명:
 
-- `/src/app/layout.tsx` 적용
+1. **`'use client'`**: Next.js 13+ App Router에서 클라이언트 컴포넌트임을 명시
+2. **`dynamic()`**: 서버사이드 렌더링(SSR) 문제를 해결하기 위한 동적 임포트
+3. **`useState('**Hello world!!!**')`**: 에디터의 초기값 설정 (마크다운 문법 포함)
+4. **`value={value}`**: 에디터에 표시될 내용
+5. **`onChange={setValue}`**: 내용이 변경될 때마다 상태 업데이트
+6. **`height={400}`**: 에디터의 높이를 400px로 설정
+
+#### 🎯 학습 목표:
+
+- 마크다운 에디터의 기본 구조 이해
+- React 상태 관리 (useState) 활용
+- Next.js 동적 임포트 사용법
+
+### 2.2 페이지에 추가
+
+**파일 경로**: `src/app/page.tsx`
+
+#### 📝 코드 설명:
 
 ```tsx
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.scss';
-import QueryProvider from '@/components/providers/QueryProvider';
+import MarkdownEditor from '@/components/MarkdownEditor';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
-export const metadata: Metadata = {
-  title: 'Create Next App',
-  description: 'Generated by create next app',
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function Home() {
   return (
-    <html lang='en'>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    <main className='p-8'>
+      <h1 className='text-3xl font-bold mb-6'>마크다운 에디터</h1>
+      <MarkdownEditor />
+    </main>
+  );
+}
+```
+
+#### 🔍 각 부분 상세 설명:
+
+1. **`import MarkdownEditor`**: 앞서 생성한 컴포넌트를 가져오기
+2. **`export default function Home()`**: Next.js App Router의 기본 페이지 컴포넌트
+3. **`className='p-8'`**: Tailwind CSS로 패딩 8 (32px) 적용
+4. **`className='text-3xl font-bold mb-6'`**:
+   - `text-3xl`: 텍스트 크기 3xl (30px)
+   - `font-bold`: 굵은 글씨
+   - `mb-6`: 하단 마진 6 (24px)
+
+#### 🎯 학습 목표:
+
+- Next.js App Router 페이지 구조 이해
+- 컴포넌트 임포트 및 사용법
+- Tailwind CSS 클래스 활용
+
+## 🎨 3. 고급 기능 구현
+
+### 3.1 미리보기 모드 설정
+
+**파일 경로**: `src/components/AdvancedEditor.tsx`
+
+#### 📝 코드 설명:
+
+```tsx
+import MDEditor from '@uiw/react-md-editor';
+
+function AdvancedEditor() {
+  const [value, setValue] = useState('# Hello World');
+  const [preview, setPreview] = useState<'edit' | 'preview' | 'previewOnly'>(
+    'edit'
+  );
+
+  return (
+    <MDEditor
+      value={value}
+      onChange={setValue}
+      preview={preview}
+      height={500}
+    />
+  );
+}
+```
+
+#### 🔍 각 부분 상세 설명:
+
+1. **`useState('# Hello World')`**: 마크다운 제목 문법으로 초기값 설정
+2. **`useState<'edit' | 'preview' | 'previewOnly'>('edit')`**:
+   - TypeScript 제네릭으로 미리보기 모드 타입 정의
+   - `'edit'`: 편집 모드만 표시
+   - `'preview'`: 편집과 미리보기 분할 표시
+   - `'previewOnly'`: 미리보기만 표시
+3. **`preview={preview}`**: 현재 선택된 미리보기 모드 적용
+
+#### 🎯 학습 목표:
+
+- TypeScript 제네릭 타입 활용
+- 미리보기 모드 상태 관리
+- 마크다운 문법 이해 (# 제목)
+
+### 3.2 커스텀 툴바
+
+**파일 경로**: `src/components/CustomToolbarEditor.tsx`
+
+#### 📝 코드 설명:
+
+```tsx
+import MDEditor, { commands } from '@uiw/react-md-editor';
+
+function CustomToolbarEditor() {
+  const [value, setValue] = useState('');
+
+  return (
+    <MDEditor
+      value={value}
+      onChange={setValue}
+      commands={[
+        commands.bold, // 굵은 글씨
+        commands.italic, // 기울임
+        commands.strikethrough, // 취소선
+        commands.divider, // 구분선
+        commands.title, // 제목
+        commands.divider, // 구분선
+        commands.link, // 링크
+        commands.quote, // 인용
+        commands.code, // 인라인 코드
+        commands.codeBlock, // 코드 블록
+        commands.divider, // 구분선
+        commands.unorderedListCommand, // 순서 없는 목록
+        commands.orderedListCommand, // 순서 있는 목록
+        commands.checkedListCommand, // 체크리스트
+      ]}
+    />
+  );
+}
+```
+
+#### 🔍 각 부분 상세 설명:
+
+1. **`import { commands }`**: 에디터에서 제공하는 툴바 명령어들 가져오기
+2. **`commands.bold`**: **굵은 글씨** 버튼
+3. **`commands.italic`**: _기울임_ 버튼
+4. **`commands.strikethrough`**: ~~취소선~~ 버튼
+5. **`commands.divider`**: 툴바 구분선 (시각적 분리)
+6. **`commands.title`**: # 제목 버튼
+7. **`commands.link`**: [링크](URL) 버튼
+8. **`commands.quote`**: > 인용 버튼
+9. **`commands.code`**: `인라인 코드` 버튼
+10. **`commands.codeBlock`**: `코드 블록` 버튼
+11. **`commands.unorderedListCommand`**: - 목록 버튼
+12. **`commands.orderedListCommand`**: 1. 목록 버튼
+13. **`commands.checkedListCommand`**: - [ ] 체크리스트 버튼
+
+#### 🎯 학습 목표:
+
+- 툴바 커스터마이징 방법
+- 마크다운 문법과 툴바 버튼의 관계
+- 배열을 활용한 동적 툴바 구성
+
+### 3.3 다크 모드 지원
+
+**파일 경로**: `src/components/DarkModeEditor.tsx`
+
+#### 📝 코드 설명:
+
+```tsx
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
+
+function DarkModeEditor() {
+  const [value, setValue] = useState('');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  return (
+    <div data-color-mode={theme}>
+      <button
+        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        className='mb-4 px-4 py-2 bg-blue-500 text-white rounded'
       >
-        <QueryProvider>{children}</QueryProvider>
-      </body>
-    </html>
+        {theme === 'light' ? '다크 모드' : '라이트 모드'}
+      </button>
+      <MDEditor value={value} onChange={setValue} data-color-mode={theme} />
+    </div>
   );
 }
 ```
 
-## 6. API 설정하기
+#### 🔍 각 부분 상세 설명:
 
-### 6.1. API 함수 만들기(CRUD)
+1. **`import '@uiw/react-md-editor/markdown-editor.css'`**: 에디터의 기본 스타일 가져오기
+2. **`useState<'light' | 'dark'>('light')`**: 테마 상태를 TypeScript로 타입 정의
+3. **`data-color-mode={theme}`**: HTML data 속성으로 테마 적용
+4. **`onClick={() => setTheme(...)}`**: 버튼 클릭 시 테마 토글
+5. **`theme === 'light' ? '다크 모드' : '라이트 모드'`**: 조건부 렌더링으로 버튼 텍스트 변경
+6. **`className='mb-4 px-4 py-2 bg-blue-500 text-white rounded'`**:
+   - `mb-4`: 하단 마진 4 (16px)
+   - `px-4 py-2`: 좌우 패딩 4, 상하 패딩 2
+   - `bg-blue-500`: 파란색 배경
+   - `text-white`: 흰색 텍스트
+   - `rounded`: 둥근 모서리
 
-- 아래는 next.js 에서 제공하는 api 와 혼동X
-- `/src/lib/api.ts 파일` 생성
+#### 🎯 학습 목표:
 
-```ts
-/**
- * API 함수들 - 서버와의 통신을 위한 함수들
- * 실제 API 호출을 담당하는 함수 정의
- * 실제 프로젝트에서는 axios, fetch 등을 사용해서 구현
- */
+- CSS 모듈 임포트 방법
+- HTML data 속성 활용
+- 조건부 렌더링과 상태 토글
+- Tailwind CSS 스타일링
 
-// 타입 정의
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  website: string;
-  company: {
-    name: string;
-    catchPhrase: string;
-    bs: string;
-  };
-}
+### 3.4 이미지 삽입 방법
 
-export interface Post {
-  id: number;
-  userId: number;
+**파일 경로**: `src/components/ImageEditor.tsx`
+
+#### 📝 툴바를 사용한 이미지 삽입 (단계별):
+
+1. **툴바에서 이미지 아이콘(🖼️) 클릭**
+   - 툴바에서 이미지 삽입 버튼을 찾아 클릭
+   - 팝업 창이 나타남
+
+2. **이미지 URL 입력** (예: `https://example.com/image.jpg`)
+   - 온라인 이미지의 전체 URL 입력
+   - 로컬 이미지는 `/이미지명.확장자` 형식
+
+3. **Alt 텍스트 입력** (접근성을 위한 설명)
+   - 시각 장애인을 위한 스크린 리더 설명
+   - 이미지가 로드되지 않을 때 표시될 텍스트
+
+4. **제목 입력** (선택사항, 마우스 오버 시 표시)
+   - 마우스를 올렸을 때 나타나는 툴팁 텍스트
+
+5. **확인 버튼 클릭**
+   - 마크다운 문법이 자동으로 삽입됨
+
+#### 📝 마크다운 문법으로 직접 작성:
+
+```markdown
+![Alt 텍스트](이미지URL '제목')
+```
+
+**구문 설명:**
+
+- `!`: 이미지임을 나타내는 마크다운 문법
+- `[Alt 텍스트]`: 대체 텍스트 (필수)
+- `(이미지URL)`: 이미지 경로 (필수)
+- `'제목'`: 툴팁 제목 (선택사항)
+
+#### 📝 실제 예제:
+
+```markdown
+<!-- 1. 기본 온라인 이미지 -->
+
+![React 로고](https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg 'React Logo')
+
+<!-- 2. 로컬 이미지 (public 폴더에 저장) -->
+
+![Next.js 로고](/next.svg 'Next.js Logo')
+
+<!-- 3. 이미지에 링크 추가 (클릭 가능한 이미지) -->
+
+[![React 로고](https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg)](https://reactjs.org)
+
+<!-- 4. HTML로 크기 조절 (마크다운 한계 극복) -->
+<img src="이미지URL" alt="설명" width="200" height="200">
+
+<!-- 5. 이미지 정렬 (HTML 사용) -->
+<div align="center">
+  <img src="이미지URL" alt="중앙 정렬" width="300">
+</div>
+```
+
+#### 🎯 학습 목표:
+
+- 마크다운 이미지 문법 이해
+- 접근성(Alt 텍스트)의 중요성
+- 온라인 vs 로컬 이미지 경로 차이
+- HTML과 마크다운 혼용 방법
+
+## 📝 4. 실습 프로젝트: 블로그 에디터
+
+### 4.1 프로젝트 구조
+
+```
+src/
+├── components/
+│   ├── MarkdownEditor.tsx          # 기본 마크다운 에디터
+│   ├── BlogEditor.tsx              # 블로그 에디터 (제목 + 내용)
+│   ├── AdvancedEditor.tsx         # 고급 에디터 (미리보기 모드)
+│   ├── CustomToolbarEditor.tsx     # 커스텀 툴바 에디터
+│   ├── DarkModeEditor.tsx          # 다크 모드 에디터
+│   └── ImageEditor.tsx            # 이미지 삽입 가이드
+├── types/
+│   └── blog.ts                     # 타입 정의
+├── app/
+│   ├── page.tsx                    # 메인 페이지 (모든 에디터 예제)
+│   └── blog/
+│       └── page.tsx                # 블로그 전용 페이지
+└── README.md                       # 수업 가이드
+```
+
+### 4.2 타입 정의
+
+**파일 경로**: `src/types/blog.ts`
+
+```tsx
+export interface BlogPost {
+  id: string;
   title: string;
-  body: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface Comment {
-  id: number;
-  postId: number;
-  name: string;
-  email: string;
-  body: string;
-}
-
-export interface Todo {
-  id: number;
-  userId: number;
+export interface EditorState {
   title: string;
-  completed: boolean;
-}
-
-// 사용자 목록 가져오기 API
-export async function fetchUsers(): Promise<User[]> {
-  // Vanila js 활용(Next.js 의 fetch 아님)
-  const response = await fetch('https://jsonplaceholder.typicode.com/users');
-  if (!response.ok) {
-    throw new Error('사용자 목록 가져오기 실패');
-  }
-  return response.json();
-}
-
-// 특정 사용자 정보 가져오기
-export async function fetchUser(id: number): Promise<User> {
-  // Vanila js 활용(Next.js 의 fetch 아님)
-  const response = await fetch(
-    `https://jsonplaceholder.typicode.com/users/${id}`
-  );
-  if (!response.ok) {
-    throw new Error(`${id} 사용자 목록 가져오기 실패`);
-  }
-  return response.json();
-}
-
-// 게시글 목록 가져오기
-// 전체 가져오기 기능
-// 또는 각 사용자별 가져오기 기능
-export async function fetchPosts(userId?: number): Promise<Post[]> {
-  const url = userId
-    ? `https://jsonplaceholder.typicode.com/posts/${userId}`
-    : 'https://jsonplaceholder.typicode.com/posts';
-
-  // Vanila js 활용(Next.js 의 fetch 아님)
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`게시글 목록 가져오기 실패`);
-  }
-
-  return response.json();
-}
-
-// 특정 게시글 상세 정보를 가져오기
-export async function fetchPost(id: number): Promise<Post> {
-  // Vanila js 활용(Next.js 의 fetch 아님)
-  const response = await fetch(
-    `https://jsonplaceholder.typicode.com/posts/${id}`
-  );
-
-  if (!response.ok) {
-    throw new Error(`${id} 게시글 상세정보 가져오기 실패`);
-  }
-
-  return response.json();
-}
-
-// 특정 게시글의 댓글 가져오기
-export async function fetchComments(postId: number): Promise<Comment[]> {
-  // Vanila js 활용(Next.js 의 fetch 아님)
-  const response = await fetch(
-    `https://jsonplaceholder.typicode.com/posts/${postId}/comments`
-  );
-
-  if (!response.ok) {
-    throw new Error(`${postId} 게시글 상세정보 가져오기 실패`);
-  }
-
-  return response.json();
-}
-
-// 할일 목록 가져오기
-export async function fetchTodos(userId?: number): Promise<Todo[]> {
-  const url = userId
-    ? `https://jsonplaceholder.typicode.com/todos?userId=${userId}`
-    : 'https://jsonplaceholder.typicode.com/todos';
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch todos');
-  }
-
-  return response.json();
-}
-
-// 새 게시글 생성하는 함수
-export async function createPost(post: Omit<Post, 'id'>): Promise<Post> {
-  const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(post),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to create post');
-  }
-
-  return response.json();
-}
-
-// 게시글 수정하는 함수
-export async function updatePost(
-  id: number,
-  post: Partial<Post>
-): Promise<Post> {
-  const response = await fetch(
-    `https://jsonplaceholder.typicode.com/posts/${id}`,
-    {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(post),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to update post ${id}`);
-  }
-
-  return response.json();
-}
-
-// 게시글 삭제하는 함수
-export async function deletePost(id: number): Promise<void> {
-  const response = await fetch(
-    `https://jsonplaceholder.typicode.com/posts/${id}`,
-    {
-      method: 'DELETE',
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to delete post ${id}`);
-  }
+  content: string;
+  isPreview: boolean;
 }
 ```
 
-### 6.2. 사용자 관련 훅
+### 4.3 블로그 에디터 컴포넌트
 
-- `/src/hooks 폴더` 생성
-- `/src/hooks/useUsers.ts 파일` 생성
-
-```ts
-// 사용자 목록을 관리하는 React Query 훅
-// 사용자 목록을 가져오고 관리하는 기능을 제공함.
-// React Query 의 useQuery 를 활용함.
-// 캐싱, 로딩, 에러 처리를 자동화 함.
-
-import { fetchUser, fetchUsers } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
-
-/**
- * 사용자 목록 가져오기
- * - 사용자 목록 자동 로딩
- * - 로딩 상태 관리
- * - 에러 상태 관리
- * - 데이터 캐싱
- * - 자동 리페치
- */
-export function useUsers() {
-  // useQuery : 정보 가져오기
-  return useQuery({
-    // 쿼리 키 : 데이터 캐싱 구별을 위한 키값을 설정
-    queryKey: ['users'],
-    // 쿼리함수 : 실제 데이터를 가져오는 함수 연결
-    queryFn: fetchUsers,
-    // 쿼리 개별 옵션
-    staleTime: 5 * 60 * 1000, // 5분간은 호출을 막는다. 즉, fresh 유지
-    gcTime: 10 * 60 * 1000, // 10분간 캐시를 유지함
-  });
-}
-
-// 각 사용자, 즉 특정 사용자 정보 가져오는 훅
-export function useUser(id: number) {
-  // ID 가 유효한지 검사 (id가 null, undefined, 0 이하면)
-  const isValidId = (id: number) => {
-    return id !== null && id !== undefined && id > 0;
-  };
-  // useQuery : 정보 호출
-  return useQuery({
-    // 쿼리의 구분을 위한 key 생성
-    queryKey: ['users', id],
-    // 실행할 함수
-    queryFn: () => fetchUser(id),
-    // 사용자 ID 가 null, undefined, 0보다 작으면 실행하지 않도록
-    enabled: isValidId(id),
-    // 쿼리옵션
-    staleTime: 5 * 60 * 1000, // 5분간은 호출을 막는다. 즉, fresh 유지
-    gcTime: 10 * 60 * 1000, // 10분간 캐시를 유지함
-  });
-}
-// 사용자와 해당 사용자의 게시글을 함께 가져오는 훅
-export function useUserWithPosts() {
-  // 먼저 사용자 목록을 가져옴
-  const usersQuery = useUsers();
-
-  // 사용자 목록이 성공적으로 로드가 된 경우에만 게시글 가져옴
-  const postsQueries = useQuery({
-    // Query 구분용 Key 생성
-    queryKey: ['users', 'posts'],
-    // 호출시 실행할 함수 생성
-    queryFn: async () => {
-      // 사용자들이 없다면 비어있는 배열을 리턴한다.
-      // 상위에서 if 문등의 조건을 이용하면 정확히 자료가 있다는
-      // 타입 좁히기 또는 타입가드가 적용됨
-      if (!usersQuery.data || usersQuery.data.length === 0) return [];
-
-      // 사용자들이 있다면 모든 사용자의 게시글을 가져옴
-      // 여러명의 사용자가 있을 것이다. 그래서 병렬로 자료를 가져옴
-      const postsPromises = usersQuery.data.map(user =>
-        fetch(
-          `https://jsonplaceholder.typicode.com/posts?userId=${user.id}`
-        ).then(res => res.json())
-      );
-
-      const allPosts = await Promise.all(postsPromises);
-
-      // 사용자별 게시글을 그룹화한다.
-      return usersQuery.data.map((user, index) => ({
-        ...user,
-        posts: allPosts[index],
-      }));
-    },
-    // 사용자 목록이 성공적으로 로드되었을 때만 실행
-    enabled: usersQuery.isSuccess,
-  });
-
-  return {
-    ...postsQueries,
-    // 원본 사용자 쿼리 정보도 함께 반환
-    usersQuery,
-  };
-}
-```
-
-### 6.3. 게시글 관련 훅
-
-- `/src/hooks/usePosts.ts 파일` 생성
-
-```ts
-// 게시글을 관리하는 React Query 훅
-
-import {
-  createPost,
-  deletePost,
-  fetchPost,
-  fetchPosts,
-  Post,
-  updatePost,
-} from '@/lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-// 게시글 목록을 가져오는 훅
-export function usePosts(userId?: number) {
-  // useQuery : 정보 가져오기
-  return useQuery({
-    // 쿼리 구분용 Key 생성
-    // 사용자 ID가 있으면 포함하여 캐시 키 생성
-    // 사용자 ID가 없으면 정해진 캐시 키 생성
-    queryKey: userId ? ['posts', 'user', userId] : ['posts'],
-    // 쿼리함수 : API 를 사용자 ID 에 따라서 호출해줌
-    queryFn: () => fetchPosts(userId),
-    // 쿼리 개별 옵션
-    staleTime: 5 * 60 * 1000, // 5분간은 호출을 막는다. 즉, fresh 유지
-    gcTime: 10 * 60 * 1000, // 10분간 캐시를 유지함
-  });
-}
-
-// 특별 게시글 정보를 가져오는 훅
-export function usePost(id: number) {
-  return useQuery({
-    queryKey: ['posts', id],
-    queryFn: () => fetchPost(id),
-    enabled: !!id,
-    // 쿼리 개별 옵션
-    staleTime: 5 * 60 * 1000, // 5분간은 호출을 막는다. 즉, fresh 유지
-    gcTime: 10 * 60 * 1000, // 10분간 캐시를 유지함
-  });
-}
-
-// 새글을 등록하는 훅
-export function useCreatePost() {
-  // 꼭 알아두자
-  // 아래 구문은 React Query 의 데이터 저장소에 접근하기 위한 훅
-  // 서버에서 가져온 데이터를 관리하는 관리자를 불러옴
-  // 내부적으로 useQuery, useMustaion 훅이 관리하는 캐시를 전체 관리하는 훅
-  const queryClient = useQueryClient();
-
-  // useMuation : 데이터 생성, 업데이트, 삭제 등..
-  return useMutation({
-    // 뮤테이션 함수 : API 를 이용한 새 게시글 생성 함수 연결
-    mutationFn: createPost,
-    // 성공시 실행되는 함수
-    onSuccess: newPost => {
-      // 게시글 목록 쿼리들을 무효화 해서 최신 데이터를 다시 가져오도록 함.
-      // 아래 구문은 특정 쿼리 키의 캐시를 무효화 함
-      // React Query 가 자동으로 최신 데이터를 다시 가져오게 하는 함수
-      // 지금 캐시에 저장된 posts 가 오래 되었으니, 다시 서버에서 가져온다
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-
-      // 새로 생성된 게시글을 캐시에 추가
-      // 아래 구문은 서버에서 다시 데이터를 가져오지 않고, 캐시 데이터를 직접 수정함
-      // 사용자가 새로고침 하지 않아도 최신 내용이 보여지도록 함.
-      queryClient.setQueryData(['posts', newPost.id], newPost);
-    },
-    // 에러시 실행되는 함수
-    onError: error => {
-      console.log('글등록 실패했어요', error);
-    },
-  });
-}
-
-// 글을 수정하는 훅
-export function useUpdatePost() {
-  const queryClient = useQueryClient();
-  // useMutaion : 데이터 생성, 업데이트, 삭제 등...
-  return useMutation({
-    // 뮤테이션 함수 : API 를 이용한 게시글 업데이트 함수 연결
-    // Partial 제네릭은 모든 객체 속성을 Optional 로 변환 즉, ? 를 모두 붙여줌
-    /**
-export interface Post {
-  id: number; // 필수
-  userId: number; // 필수
-  title: string; // 필수
-  body: string; // 필수
-}
-     */
-    // Partial<Post> 적용시
-    /**
-export interface Post {
-  id: number; // 선택
-  userId: number; // 선택
-  title: string; // 선택
-  body: string; // 선택
-}
-     */
-    mutationFn: ({ id, post }: { id: number; post: Partial<Post> }) =>
-      updatePost(id, post),
-    // 성공시
-    onSuccess: updatePost => {
-      // 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['posts', updatePost.id] });
-      // 게시글 목록 쿼리들도 무효화
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      // 수정된 게시글들을 캐시에 업데이트
-      queryClient.setQueryData(['posts', updatePost.id], updatePost);
-    },
-    // 실패시
-    onError: error => {
-      console.log('글 수정에 실패했습니다.', error);
-    },
-  });
-}
-
-// 게시글 삭제
-export function useDeletePost() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    // 다음처럼 사용하기 위해서 정의함.
-    // const deleteMutation = useDeletePost();
-    // deleteMutation.mutate(123)
-    mutationFn: deletePost,
-
-    // 아래는 참고사항
-    // const deleteMutation = useDeletePost(123);
-    // deleteMutation.mutate()
-    // mutationFn: () => deletePost(id),
-
-    // 성공시
-    // 아래도 기억해야함.
-    // 첫번째 매개변수 _ 의 의미는 mutation 의 결과를 말함.
-    // _ 의 코딩상 의미는 사용하지 않는 변수이다 를 표현함.
-    // deletePost 함수 API 는 결과를 리턴하는 것이 없다.
-    // 사용하지 않는 리턴 결과임을 표현하기 위해서 _를 사용함.
-
-    // 첫번째 매개변수 : _ 결과값
-    // 두번째 매개변수 deletedId 는 deletePost(매개변수) 에 전달한 매개변수를 참조함.
-    // deleteMutation.mutate(123)
-
-    onSuccess: (_, deletedId) => {
-      // 삭제된 게시글 쿼리 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['posts', deletedId] });
-      // 목록 갱신을 위해서 캐시를 지움
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    },
-    // 실패시
-    onError: error => {
-      console.log('삭제에 실패했어요', error);
-    },
-  });
-}
-
-// 게시글과 댓글을 함께 가져오는 훅
-export function usePostWithComments(userId?: number) {
-  // 먼저 게시글 목록을 가져옴
-  const postsQuery = usePosts(userId);
-  // 게시글 목록이 성공적으로 로드된 경우에만 댓글을 가져옴
-  const commentsQuery = useQuery({
-    queryKey: ['posts', 'comments', userId],
-    queryFn: async () => {
-      if (!postsQuery.data) return [];
-      // 모든 게시글의 댓글을 병렬로 가져옴
-      const commentsPromises = postsQuery.data.map(post =>
-        fetch(
-          `https://jsonplaceholder.typicode.com/posts/${post.id}/comments`
-        ).then(res => res.json())
-      );
-
-      const allComments = await Promise.all(commentsPromises);
-      return postsQuery.data.map((post, index) => ({
-        ...post,
-        comments: allComments[index],
-      }));
-    },
-    // 게시글 목록이 성공적으로 로드된 경우만 실행
-    enabled: postsQuery.isSuccess,
-  });
-  return {
-    ...commentsQuery,
-    // 원본 게시글 쿼리 정보도 함께 반환
-    postsQuery,
-  };
-}
-```
-
-### 6.4. 할일 관련 훅
-
-- `/src/hooks/useTodos.ts 파일` 생성
-
-```ts
-// 할일을 관리하는 React Query 훅
-
-import { fetchTodos, Todo } from '@/lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-// 할일 목록 가져오기
-export function useTodos(userId?: number) {
-  return useQuery({
-    queryKey: userId ? ['todos', 'user', userId] : ['todos'],
-    queryFn: () => fetchTodos(userId),
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-  });
-}
-
-// 완료 상태로 할일을 필터링 하는 훅
-export function useTodaysByStatus(userId?: number, completed?: boolean) {
-  return useQuery({
-    queryKey: ['todos', 'user', userId, 'status', completed],
-    queryFn: async () => {
-      const todos = await fetchTodos(userId);
-      // 완료 상태가 지정된 경우 필터링
-      // completed === true : 완료
-      // completed === false : 미완료
-      // completed === undefined : 모두다
-      if (completed !== undefined) {
-        return todos.filter(todo => todo.completed === completed);
-      }
-      return todos;
-    },
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-  });
-}
-
-// 할일 통계 정보를 가져오는 훅
-export function useTodoStats(userId?: number) {
-  const todosQuery = useTodos(userId);
-
-  return {
-    ...todosQuery,
-    // 통계 데이터 계산
-    data: todosQuery.data
-      ? {
-          total: todosQuery.data.length,
-          completed: todosQuery.data.filter(todo => todo.completed).length,
-          pending: todosQuery.data.filter(todo => !todo.completed).length,
-          completionRate:
-            todosQuery.data.length > 0
-              ? (todosQuery.data.filter(todo => todo.completed).length /
-                  todosQuery.data.length) *
-                100
-              : 0,
-        }
-      : undefined,
-  };
-}
-
-// 새 할일 생성하는 뮤테이션 훅
-export function useCreateTodo() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (todo: Omit<Todo, 'id'>) => {
-      // 실제 API 테스트 못하므로 데모용으로 대체
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { ...todo, id: Math.random() * 1000 };
-    },
-    onSuccess: newTodo => {
-      // 할일 목록 쿼리들을 무효화
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
-      // 새로 생성된 할일을 캐시에 추가
-      queryClient.setQueryData(['todos', newTodo.id], newTodo);
-    },
-    onError: error => {
-      console.log('할일 생성에 실패했어요.', error);
-    },
-  });
-}
-
-// 할일을 수정하는 뮤테이션 훅
-export function useUpdateTodo() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      id,
-      updates,
-    }: {
-      id: number;
-      updates: Partial<Todo>;
-    }) => {
-      // 실제 API 테스트 못하므로 데모용으로 대체
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { id, ...updates };
-    },
-    onSuccess: updatedTodo => {
-      // 해당 할일 쿼리를 무효화
-      queryClient.invalidateQueries({ queryKey: ['todos', updatedTodo.id] });
-      // 할일 목록 쿼리들도 무효화
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
-      // 수정된 할일을 캐시에 업데이트
-      queryClient.setQueryData(['todos', updatedTodo.id], updatedTodo);
-    },
-    onError: error => {
-      console.log('업데이트에 실패했습니다.', error);
-    },
-  });
-}
-
-// 할일 삭제하는 뮤테이션 훅
-export function useDeleteTodo() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: number) => {
-      // 실제 API 테스트 못하므로 데모용으로 대체
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return id;
-    },
-    onSuccess: deletedId => {
-      // 해당 할일 쿼리를 무효화
-      queryClient.invalidateQueries({ queryKey: ['todos', deletedId] });
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
-    },
-    onError: error => {
-      console.log('삭제에 실패했습니다.', error);
-    },
-  });
-}
-
-// 할일 토글 뮤테이션 훅
-export function useToggleTodo() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: number) => {
-      // 실제 API 테스트 못하므로 데모용으로 대체
-      await new Promise(resolve => setTimeout(resolve, 300));
-      // 현재 할일 정보를 가져와서 상태를 토글
-      // 아래 내용 즉, getQueryData 의 용도를 파악해 두자.
-      // - api 호출 없이 React Query 의 캐시데이터를 직접 가져오는 방법
-      const currentTodos = queryClient.getQueryData<Todo[]>(['todos']);
-      const todo = currentTodos?.find(item => item.id === id);
-      if (!todo) {
-        throw new Error('없는 Todo 입니다.');
-      }
-      return {
-        ...todo,
-        completed: !todo.completed,
-      };
-    },
-    onSuccess: toggledTodo => {
-      // 해당 할일 쿼리를 무효화
-      queryClient.invalidateQueries({ queryKey: ['todos', toggledTodo.id] });
-      // 할일 목록 쿼리를 무효화
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
-      // 토글된 할일을 캐시에 업데이트
-      queryClient.setQueryData(['todos', toggledTodo.id], toggledTodo);
-    },
-    onError: error => {
-      console.log('토글에 실패했습니다.', error);
-    },
-  });
-}
-```
-
-## 7. React Query 와 Zustand 통합
-
-### 7.1. 통합 훅 만들기
-
-- `/src/stores/queryStore.ts 파일` 생성
-
-```ts
-// React Query의 상태를 Zustand 에서 관리하기 위한 스토어
-
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { QueryState } from '@/types/types';
-
-// 1 단계 타입 정의
-// interface QueryState {
-//   // State
-//   selectedUserId: number | null; // 현재 선택된 사용자 ID
-//   selectedPostId: number | null; // 현재 선택된 게시글 ID
-//   // Action
-//   setSelectedUserId: (userId: number | null) => void; // 선택된 사용자 ID 설정
-//   setSelectedPostId: (postId: number | null) => void; // 선택된 게시글 ID 설정
-// }
-
-// 2. localStorage 로 생성
-const queryLocalState = create<QueryState>()(
-  persist(
-    set => ({
-      // 초기 state 설정
-      selectedUserId: null, // 처음에 선택된 사용자 ID 없음
-      selectedPostId: null, // 처음에 선택된 게시글 ID 없음
-      // 초기 Action 기능 설정
-      setSelectedUserId: (userId: number | null) => {
-        set({ selectedUserId: userId });
-      },
-      setSelectedPostId: (postId: number | null) => {
-        set({ selectedPostId: postId });
-      },
-    }),
-    {
-      name: 'query-storage', // localStorage 에 저장될 키 이름
-      partialize: () => {
-        // localStorage 에 보관할 state 지정 가능
-      },
-    }
-  )
-);
-// 3. 훅 정의
-export const useQueryStore = () => {
-  const ctx = queryLocalState();
-  return ctx;
-};
-```
-
-- `/src/hooks/useQueryIntergration.ts 파일` 생성
-
-```ts
-// React Query 와 Zustand 통합 훅
-
-import { fetchPosts, fetchUser } from '@/lib/api';
-import { useQueryStore } from '@/stores/queryStore';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-// 선택된 사용자 정보를 가져오는 훅
-export function useSelectedUser() {
-  // 사용자 정보를 zustand 로 관리
-  const { selectedUserId } = useQueryStore();
-
-  return useQuery({
-    queryKey: ['users', selectedUserId],
-    queryFn: () => fetchUser(selectedUserId!),
-    enabled: !!selectedUserId,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
-}
-
-// 선택된 게시글 정보를 가져오는 훅
-export function useSelectedPost() {
-  // 게시글 정보를 zustand 로 관리
-  const { selectedPostId } = useQueryStore();
-
-  return useQuery({
-    queryKey: ['posts', selectedPostId],
-    queryFn: () => fetchUser(selectedPostId!),
-    enabled: !!selectedPostId,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
-}
-
-// 사용자 선택 기능을 제공하는 훅
-export function useUserSelection() {
-  const { selectedUserId, setSelectedUserId } = useQueryStore();
-  // 선택된 사용자 정보를 가져오는 훅
-  const selectedUserQuery = useSelectedUser();
-  return {
-    // 상태
-    selectedUserId,
-    selectedUser: selectedUserQuery.data, // 사용자 데이터
-    isLoading: selectedUserQuery.isLoading, // 로딩 상태
-    error: selectedUserQuery.error, // 에러 상태
-
-    // 액션들
-    selectUser: (userId: number) => setSelectedUserId(userId),
-    clearSelection: () => setSelectedUserId(null),
-
-    // 쿼리 정보
-    query: selectedUserQuery,
-  };
-}
-
-// 쿼리 프리패치를 위한 훅
-// - 사용자가 특정 데이터를 필요로 할 것이라고 예상해서
-// - 미리 데이터를 가져와서 캐시에 저장하는 프리패치 기능용 훅
-export function usePrefetchQuery() {
-  // React Query 의 전역 캐시(useQuery,useMutation)를 관리함.
-  const queryClient = useQueryClient();
-  return {
-    // 프리패치 할 것들
-    // 1. 사용자 정보를 미리 캐시에 보관함 (프리패치)
-    prefetchUser: (userId: number) => {
-      queryClient.prefetchQuery({
-        queryKey: ['users', userId],
-        queryFn: () => fetchUser(userId),
-        staleTime: 5 * 60 * 1000, // 5분 stale 상태
-      });
-    },
-    // 2. 사용자의 게시글을 미리 캐시에 보관함.
-    prefetchUserPosts: (userId: number) => {
-      queryClient.prefetchQuery({
-        queryKey: ['posts', 'users', userId],
-        queryFn: () => fetchPosts(userId),
-        staleTime: 2 * 60 * 1000, // 2분 stale 상태
-      });
-    },
-  };
-}
-```
-
-### 7.2. 컴포넌트 생성 및 적용하고 테스트하기
-
-- `/src/components/UsersList.tsx` 생성
-- 사용자 목록
+**파일 경로**: `src/components/BlogEditor.tsx`
 
 ```tsx
 'use client';
-import { useUserSelection } from '@/hooks/useQueryIntergration';
-// 사용자 목록 컴포넌트
-// useQuery 를 사용해서 사용자 목록 가져오고 표시함.
-// 로딩상태, 에러상태, 데이터 표시 처리
 
-import { useUsers } from '@/hooks/useUsers';
+import dynamic from 'next/dynamic';
+import { useState } from 'react';
+import { EditorState } from '@/types/blog';
 
-const UsersList = () => {
-  // 사용자 목록 가져오기
-  // useQuery 를 활용하면 리턴으로 다양한 정보 객체를 전달해줌.
-  // data 리턴되는 값, isLoading 로딩상태, error 에러
-  const { data: users, isLoading, error } = useUsers();
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
 
-  // 사용자 선택 기능 가져오기
-  const { selectedUserId, selectUser, clearSelection } = useUserSelection();
+export default function BlogEditor() {
+  const [editorState, setEditorState] = useState<EditorState>({
+    title: '',
+    content: '',
+    isPreview: false,
+  });
 
-  // 상황에 따라서 출력을 달리함
-  // 로딩 상태일때
-  if (isLoading) {
-    return (
-      <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto'></div>
-          <p className='mt-2 text-gray-600'>Loading users...</p>
-        </div>
-      </div>
-    );
-  }
-  // 에러 상태일때
-  if (error) {
-    return (
-      <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg'>
-        <div className='text-center text-red-600'>
-          <p className='text-lg font-semibold'>Error loading users</p>
-          <p className='text-sm mt-1'>{error.message}</p>
-        </div>
-      </div>
-    );
-  }
+  const handleSave = () => {
+    // 저장 로직 구현
+    console.log('저장:', editorState);
+  };
+
   return (
-    <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg space-y-4'>
-      {/* 컴포넌트 제목 */}
-      <div className='flex justify-between items-center'>
-        <h2 className='text-2xl font-bold text-gray-800'>
-          Users List ({users?.length || 0})
-        </h2>
-
-        {/* 선택된 사용자가 있을 때 선택 해제 버튼 */}
-        {selectedUserId && (
-          <button
-            onClick={clearSelection}
-            className='px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors'
-          >
-            Clear Selection
-          </button>
-        )}
+    <div className='max-w-4xl mx-auto p-6'>
+      <div className='mb-4'>
+        <input
+          type='text'
+          placeholder='제목을 입력하세요'
+          value={editorState.title}
+          onChange={e =>
+            setEditorState(prev => ({
+              ...prev,
+              title: e.target.value,
+            }))
+          }
+          className='w-full text-2xl font-bold border-none outline-none'
+        />
       </div>
 
-      {/* 사용자 목록 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-        {users?.map(user => (
-          <div
-            key={user.id}
-            className={`p-4 border rounded-lg cursor-pointer transition-all ${
-              selectedUserId === user.id
-                ? 'border-blue-500 bg-blue-50 shadow-md'
-                : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-            }`}
-            onClick={() => selectUser(user.id)}
+      <div className='border rounded-lg overflow-hidden'>
+        <MDEditor
+          value={editorState.content}
+          onChange={value =>
+            setEditorState(prev => ({
+              ...prev,
+              content: value || '',
+            }))
+          }
+          preview={editorState.isPreview ? 'preview' : 'edit'}
+          height={600}
+        />
+      </div>
+
+      <div className='flex justify-between mt-4'>
+        <button
+          onClick={() =>
+            setEditorState(prev => ({
+              ...prev,
+              isPreview: !prev.isPreview,
+            }))
+          }
+          className='px-4 py-2 bg-gray-500 text-white rounded'
+        >
+          {editorState.isPreview ? '편집 모드' : '미리보기'}
+        </button>
+
+        <button
+          onClick={handleSave}
+          className='px-6 py-2 bg-blue-500 text-white rounded'
+        >
+          저장
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+## 🎯 5. 실습 과제
+
+### 과제 1: 기본 에디터 구현
+
+- 마크다운 에디터 컴포넌트 생성
+- 실시간 미리보기 기능 구현
+- 기본 툴바 기능 테스트
+
+### 과제 2: 커스터마이징
+
+- 다크/라이트 모드 토글 기능
+- 커스텀 툴바 버튼 추가
+- 에디터 높이 및 스타일 조정
+
+### 과제 3: 데이터 관리
+
+- 로컬 스토리지에 글 저장
+- 글 목록 표시 기능
+- 글 수정/삭제 기능
+
+## 📚 6. 추가 학습 자료
+
+### 유용한 링크
+
+- [@uiw/react-md-editor 공식 문서](https://uiwjs.github.io/react-md-editor/)
+- [마크다운 문법 가이드](https://www.markdownguide.org/basic-syntax/)
+- [Next.js 동적 임포트](https://nextjs.org/docs/advanced-features/dynamic-import)
+
+### 관련 라이브러리
+
+- `@uiw/react-md-editor`: 메인 에디터
+- `marked`: 마크다운 파싱
+- `prismjs`: 코드 하이라이팅
+- `katex`: 수학 공식 렌더링
+
+## 🐛 7. 문제 해결
+
+### 자주 발생하는 문제들
+
+#### SSR 오류
+
+```tsx
+// 해결책: 동적 임포트 사용
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
+```
+
+#### 스타일이 적용되지 않는 문제
+
+```tsx
+// CSS 파일 임포트 추가
+import '@uiw/react-md-editor/markdown-editor.css';
+```
+
+#### TypeScript 타입 오류
+
+```tsx
+// 타입 단언 사용
+const value = editorValue as string;
+```
+
+#### onPreviewChange 오류
+
+```tsx
+// ❌ 잘못된 사용법 (더 이상 지원되지 않음)
+<MDEditor
+  value={value}
+  onChange={setValue}
+  preview={preview}
+  onPreviewChange={setPreview}  // 이 속성은 제거
+  height={500}
+/>
+
+// ✅ 올바른 사용법
+<MDEditor
+  value={value}
+  onChange={setValue}
+  preview={preview}
+  height={500}
+/>
+```
+
+## 🎉 8. 완성된 프로젝트 실행
+
+### 8.1 프로젝트 실행
+
+```bash
+# 개발 서버 실행
+npm run dev
+
+# 빌드
+npm run build
+
+# 프로덕션 실행
+npm start
+```
+
+### 8.2 확인할 수 있는 페이지들
+
+- **메인 페이지**: `http://localhost:3000` - 모든 에디터 예제 확인
+- **블로그 페이지**: `http://localhost:3000/blog` - 블로그 에디터 전용 페이지
+
+### 8.3 생성된 파일 목록
+
+```
+📁 src/
+├── 📁 components/
+│   ├── 📄 MarkdownEditor.tsx          # 기본 마크다운 에디터
+│   ├── 📄 BlogEditor.tsx              # 블로그 에디터 (제목 + 내용)
+│   ├── 📄 AdvancedEditor.tsx         # 고급 에디터 (미리보기 모드)
+│   ├── 📄 CustomToolbarEditor.tsx     # 커스텀 툴바 에디터
+│   ├── 📄 DarkModeEditor.tsx          # 다크 모드 에디터
+│   └── 📄 ImageEditor.tsx            # 이미지 삽입 가이드
+├── 📁 types/
+│   └── 📄 blog.ts                     # 타입 정의
+├── 📁 app/
+│   ├── 📄 page.tsx                    # 메인 페이지 (모든 에디터 예제)
+│   └── 📁 blog/
+│       └── 📄 page.tsx                # 블로그 전용 페이지
+└── 📄 README.md                       # 수업 가이드
+```
+
+브라우저에서 `http://localhost:3000`으로 접속하여 마크다운 에디터를 확인할 수 있습니다.
+
+---
+
+---
+
+# Tiptap 에디터 수업 가이드
+
+## 📚 Tiptap 에디터 개요
+
+Tiptap은 현대적인 WYSIWYG 에디터로, 확장 가능하고 커스터마이징이 용이한 에디터입니다. React와 Next.js에서 강력한 리치 텍스트 에디터를 구현할 수 있습니다.
+
+## 🛠️ 1. Tiptap 설치 과정
+
+### 1.1 패키지 설치
+
+```bash
+npm install @tiptap/core @tiptap/react @tiptap/starter-kit
+```
+
+### 1.2 추가 확장 패키지 (필수)
+
+```bash
+# 이미지, 링크 등 고급 기능 (고급 에디터에서 사용)
+npm install @tiptap/extension-image @tiptap/extension-link
+```
+
+### 1.3 모든 기능 확장 패키지 (완전한 에디터용)
+
+```bash
+# 색상, 정렬, 하이라이트 등 모든 고급 기능
+npm install @tiptap/extension-color @tiptap/extension-text-style @tiptap/extension-text-align @tiptap/extension-highlight @tiptap/extension-underline @tiptap/extension-superscript @tiptap/extension-subscript
+```
+
+#### ⚠️ 중요: 확장 패키지 중복 문제 해결
+
+Tiptap에서 중복 확장 에러를 방지하기 위해 StarterKit의 일부 확장을 비활성화해야 합니다:
+
+```tsx
+StarterKit.configure({
+  // StarterKit에서 중복되는 확장들 비활성화
+  link: false, // Link 확장을 별도로 설정
+  underline: false, // Underline 확장을 별도로 설정
+}),
+```
+
+### 1.4 아이콘 라이브러리 설치
+
+```bash
+# 툴바 아이콘을 위한 Lucide React 설치
+npm install lucide-react
+```
+
+### 1.5 추가 확장 패키지 (선택사항)
+
+```bash
+# 테이블, 색상 등 더 많은 기능
+npm install @tiptap/extension-table @tiptap/extension-color @tiptap/extension-text-style
+```
+
+### 1.6 설치 확인
+
+`package.json`에서 설치된 패키지 확인:
+
+```json
+{
+  "dependencies": {
+    "@tiptap/core": "^2.x.x",
+    "@tiptap/react": "^2.x.x",
+    "@tiptap/starter-kit": "^2.x.x",
+    "@tiptap/extension-image": "^2.x.x",
+    "@tiptap/extension-link": "^2.x.x",
+    "@tiptap/extension-color": "^2.x.x",
+    "@tiptap/extension-text-style": "^2.x.x",
+    "@tiptap/extension-text-align": "^2.x.x",
+    "@tiptap/extension-highlight": "^2.x.x",
+    "@tiptap/extension-underline": "^2.x.x",
+    "@tiptap/extension-superscript": "^2.x.x",
+    "@tiptap/extension-subscript": "^2.x.x",
+    "lucide-react": "^0.x.x"
+  }
+}
+```
+
+## 🚀 2. Tiptap 기본 사용법
+
+### 2.1 모든 기능이 포함된 완전한 Tiptap 에디터
+
+#### 📁 파일 경로: `src/components/FullFeaturedTiptapEditor.tsx`
+
+```tsx
+'use client';
+
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Color from '@tiptap/extension-color';
+import TextStyle from '@tiptap/extension-text-style';
+import TextAlign from '@tiptap/extension-text-align';
+import Highlight from '@tiptap/extension-highlight';
+import Underline from '@tiptap/extension-underline';
+import Superscript from '@tiptap/extension-superscript';
+import Subscript from '@tiptap/extension-subscript';
+import { useState } from 'react';
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  Underline as UnderlineIcon,
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Palette,
+  Highlighter,
+  Code,
+  List,
+  ListOrdered,
+  Quote,
+  Superscript as SuperscriptIcon,
+  Subscript as SubscriptIcon,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Unlink,
+  Undo,
+  Redo,
+  Save,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
+
+export default function FullFeaturedTiptapEditor() {
+  const [showPreview, setShowPreview] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showHighlightPicker, setShowHighlightPicker] = useState(false);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        // StarterKit에서 중복되는 확장들 비활성화
+        link: false, // Link 확장을 별도로 설정
+        underline: false, // Underline 확장을 별도로 설정
+      }),
+      TextStyle, // 텍스트 스타일 확장 (Color 확장보다 먼저)
+      Color, // 글자색상
+      Image.configure({
+        HTMLAttributes: {
+          class: 'max-w-full h-auto rounded-lg',
+        },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-500 underline hover:text-blue-700',
+        },
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Highlight.configure({
+        multicolor: true, // 여러 색상 하이라이트
+      }),
+      Underline, // 밑줄
+      Superscript, // 위첨자
+      Subscript, // 아래첨자
+    ],
+    content:
+      '<p>모든 기능이 포함된 에디터입니다. 다양한 서식을 적용해보세요!</p>',
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: 'prose prose-lg mx-auto focus:outline-none min-h-[500px]',
+      },
+    },
+  });
+
+  const handleColorChange = (color: string) => {
+    editor?.chain().focus().setColor(color).run();
+    setShowColorPicker(false);
+  };
+
+  const handleHighlightChange = (color: string) => {
+    editor?.chain().focus().setHighlight({ color }).run();
+    setShowHighlightPicker(false);
+  };
+
+  const colorPalette = [
+    '#000000',
+    '#FFFFFF',
+    '#FF0000',
+    '#00FF00',
+    '#0000FF',
+    '#FFFF00',
+    '#FF00FF',
+    '#00FFFF',
+    '#FFA500',
+    '#800080',
+    '#FFC0CB',
+    '#A52A2A',
+    '#808080',
+    '#000080',
+    '#008000',
+    '#FFD700',
+    '#FF6347',
+    '#40E0D0',
+    '#EE82EE',
+    '#90EE90',
+  ];
+
+  return (
+    <div className='max-w-6xl mx-auto p-6'>
+      <h2 className='text-2xl font-bold mb-4'>
+        모든 기능이 포함된 Tiptap 에디터
+      </h2>
+
+      {/* 확장된 툴바 */}
+      <div className='border border-gray-300 rounded-t-lg p-2 bg-gray-50'>
+        <div className='flex flex-wrap gap-1'>
+          {/* 기본 서식 */}
+          <button onClick={() => editor?.chain().focus().toggleBold().run()}>
+            <Bold size={16} />
+          </button>
+          <button onClick={() => editor?.chain().focus().toggleItalic().run()}>
+            <Italic size={16} />
+          </button>
+          <button onClick={() => editor?.chain().focus().toggleStrike().run()}>
+            <Strikethrough size={16} />
+          </button>
+          <button
+            onClick={() => editor?.chain().focus().toggleUnderline().run()}
           >
-            {/* 사용자 기본 정보 */}
-            <div className='space-y-2'>
-              <h3 className='font-semibold text-gray-800'>{user.name}</h3>
-              <p className='text-sm text-gray-600'>{user.email}</p>
-              <p className='text-sm text-gray-500'>{user.phone}</p>
+            <UnderlineIcon size={16} />
+          </button>
 
-              {/* 회사 정보 */}
-              <div className='pt-2 border-t border-gray-100'>
-                <p className='text-xs text-gray-500'>Company</p>
-                <p className='text-sm font-medium text-gray-700'>
-                  {user.company.name}
-                </p>
-                <p className='text-xs text-gray-500 italic'>
-                  &ldquo;{user.company.catchPhrase}&rdquo;
-                </p>
-              </div>
+          {/* 제목 H1~H6 */}
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+          >
+            <Heading1 size={16} />
+          </button>
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+          >
+            <Heading2 size={16} />
+          </button>
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 3 }).run()
+            }
+          >
+            <Heading3 size={16} />
+          </button>
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 4 }).run()
+            }
+          >
+            <Heading4 size={16} />
+          </button>
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 5 }).run()
+            }
+          >
+            <Heading5 size={16} />
+          </button>
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 6 }).run()
+            }
+          >
+            <Heading6 size={16} />
+          </button>
 
-              {/* 웹사이트 */}
-              <div className='pt-2'>
-                <a
-                  href={`https://${user.website}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='text-xs text-blue-600 hover:text-blue-800 hover:underline'
-                  onClick={e => e.stopPropagation()} // 부모 클릭 이벤트 방지
-                >
-                  {user.website}
-                </a>
-              </div>
-            </div>
+          {/* 텍스트 정렬 */}
+          <button
+            onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+          >
+            <AlignLeft size={16} />
+          </button>
+          <button
+            onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+          >
+            <AlignCenter size={16} />
+          </button>
+          <button
+            onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+          >
+            <AlignRight size={16} />
+          </button>
+          <button
+            onClick={() =>
+              editor?.chain().focus().setTextAlign('justify').run()
+            }
+          >
+            <AlignJustify size={16} />
+          </button>
 
-            {/* 선택 상태 표시 */}
-            {selectedUserId === user.id && (
-              <div className='mt-3 pt-2 border-t border-blue-200'>
-                <div className='flex items-center text-blue-600'>
-                  <svg
-                    className='w-4 h-4 mr-1'
-                    fill='currentColor'
-                    viewBox='0 0 20 20'
-                  >
-                    <path
-                      fillRule='evenodd'
-                      d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                      clipRule='evenodd'
+          {/* 색상 및 하이라이트 */}
+          <div className='relative'>
+            <button onClick={() => setShowColorPicker(!showColorPicker)}>
+              <Palette size={16} />
+            </button>
+            {showColorPicker && (
+              <div className='absolute top-full left-0 mt-1 p-3 bg-white border border-gray-300 rounded-lg shadow-lg z-10 min-w-[200px]'>
+                <div className='grid grid-cols-5 gap-2 mb-3'>
+                  {colorPalette.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => handleColorChange(color)}
+                      className='w-8 h-8 rounded border border-gray-300 hover:scale-110 transition-transform shadow-sm'
+                      style={{ backgroundColor: color }}
+                      title={color}
                     />
-                  </svg>
-                  <span className='text-sm font-medium'>Selected</span>
+                  ))}
+                </div>
+                <div className='border-t pt-2'>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    커스텀 색상:
+                  </label>
+                  <input
+                    type='color'
+                    onChange={e => handleColorChange(e.target.value)}
+                    className='w-full h-8 border border-gray-300 rounded cursor-pointer'
+                  />
                 </div>
               </div>
             )}
           </div>
-        ))}
-      </div>
 
-      {/* 사용자 목록이 비어있을 때 */}
-      {users?.length === 0 && (
-        <div className='text-center py-8 text-gray-500'>
-          <p>No users found</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default UsersList;
-```
-
-- `/src/components/UserDetail.tsx` 생성
-- 사용자 상세정보
-
-```tsx
-'use client';
-
-import { usePosts } from '@/hooks/usePosts';
-import { useUserSelection } from '@/hooks/useQueryIntergration';
-
-// 선택된 사용자의 상세 정보를 표시하는 컴포넌트
-
-const UserDetail = () => {
-  // 선택된 사용자 정보를 가져옴
-  const {
-    selectedUserId,
-    selectedUser,
-    isLoading: userLoading,
-    error: userError,
-  } = useUserSelection();
-  // 선택된 사용자 게시글 가져옴
-  const {
-    data: posts,
-    isLoading: postsLoading,
-    error: postsError,
-  } = usePosts(selectedUserId || undefined);
-
-  // 사용자가 선택되지 않았을때 안내 메시지
-  if (!selectedUserId) {
-    return (
-      <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg'>
-        <div className='text-center text-gray-500'>
-          <div className='mb-4'>
-            <svg
-              className='w-16 h-16 mx-auto text-gray-300'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
+          <div className='relative'>
+            <button
+              onClick={() => setShowHighlightPicker(!showHighlightPicker)}
             >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={1}
-                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-              />
-            </svg>
-          </div>
-          <h3 className='text-lg font-semibold text-gray-700 mb-2'>
-            No User Selected
-          </h3>
-          <p className='text-sm'>
-            Please select a user from the list to view their details
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // 사용자 정보가 있으면 사용자 상세 정보 로딩중...
-  if (userLoading) {
-    return (
-      <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto'></div>
-          <p className='mt-2 text-gray-600'>Loading user details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 사용자 정보 가져오다가 에러라면
-  if (userError) {
-    return (
-      <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg'>
-        <div className='text-center text-red-600'>
-          <p className='text-lg font-semibold'>Error loading user</p>
-          <p className='text-sm mt-1'>{userError.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 사용자 정보 및 posts 출력
-  return (
-    <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg space-y-6'>
-      {/* 사용자 기본 정보 */}
-      <div className='border-b border-gray-200 pb-6'>
-        <h2 className='text-2xl font-bold text-gray-800 mb-4'>User Details</h2>
-
-        {selectedUser && (
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-            {/* 기본 정보 */}
-            <div className='space-y-4'>
-              <div>
-                <h3 className='text-lg font-semibold text-gray-700 mb-2'>
-                  Basic Information
-                </h3>
-                <div className='space-y-2'>
-                  <div>
-                    <span className='text-sm font-medium text-gray-500'>
-                      Name:
-                    </span>
-                    <p className='text-gray-800'>{selectedUser.name}</p>
-                  </div>
-                  <div>
-                    <span className='text-sm font-medium text-gray-500'>
-                      Email:
-                    </span>
-                    <p className='text-gray-800'>{selectedUser.email}</p>
-                  </div>
-                  <div>
-                    <span className='text-sm font-medium text-gray-500'>
-                      Phone:
-                    </span>
-                    <p className='text-gray-800'>{selectedUser.phone}</p>
-                  </div>
-                  <div>
-                    <span className='text-sm font-medium text-gray-500'>
-                      Website:
-                    </span>
-                    <a
-                      href={`https://${selectedUser.website}`}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-blue-600 hover:text-blue-800 hover:underline'
-                    >
-                      {selectedUser.website}
-                    </a>
-                  </div>
+              <Highlighter size={16} />
+            </button>
+            {showHighlightPicker && (
+              <div className='absolute top-full left-0 mt-1 p-3 bg-white border border-gray-300 rounded-lg shadow-lg z-10 min-w-[200px]'>
+                <div className='grid grid-cols-5 gap-2 mb-3'>
+                  {colorPalette.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => handleHighlightChange(color)}
+                      className='w-8 h-8 rounded border border-gray-300 hover:scale-110 transition-transform shadow-sm'
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+                <div className='border-t pt-2'>
+                  <label className='block text-xs text-gray-600 mb-1'>
+                    커스텀 색상:
+                  </label>
+                  <input
+                    type='color'
+                    onChange={e => handleHighlightChange(e.target.value)}
+                    className='w-full h-8 border border-gray-300 rounded cursor-pointer'
+                  />
                 </div>
               </div>
-            </div>
-
-            {/* 회사 정보 */}
-            <div className='space-y-4'>
-              <div>
-                <h3 className='text-lg font-semibold text-gray-700 mb-2'>
-                  Company Information
-                </h3>
-                <div className='space-y-2'>
-                  <div>
-                    <span className='text-sm font-medium text-gray-500'>
-                      Company:
-                    </span>
-                    <p className='text-gray-800'>{selectedUser.company.name}</p>
-                  </div>
-                  <div>
-                    <span className='text-sm font-medium text-gray-500'>
-                      Catch Phrase:
-                    </span>
-                    <p className='text-gray-800 italic'>
-                      &ldquo;{selectedUser.company.catchPhrase}&rdquo;
-                    </p>
-                  </div>
-                  <div>
-                    <span className='text-sm font-medium text-gray-500'>
-                      Business:
-                    </span>
-                    <p className='text-gray-800'>{selectedUser.company.bs}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* 사용자의 게시글 목록 */}
-      <div>
-        <h3 className='text-xl font-semibold text-gray-700 mb-4'>
-          Posts ({posts?.length || 0})
-        </h3>
+          {/* 목록 및 기타 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          >
+            <List size={16} />
+          </button>
+          <button
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          >
+            <ListOrdered size={16} />
+          </button>
+          <button
+            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+          >
+            <Quote size={16} />
+          </button>
+          <button
+            onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+          >
+            <Code size={16} />
+          </button>
 
-        {/* 게시글 로딩 중 */}
-        {postsLoading && (
-          <div className='text-center py-4'>
-            <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto'></div>
-            <p className='mt-2 text-sm text-gray-600'>Loading posts...</p>
-          </div>
-        )}
+          {/* 위첨자/아래첨자 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleSuperscript().run()}
+          >
+            <SuperscriptIcon size={16} />
+          </button>
+          <button
+            onClick={() => editor?.chain().focus().toggleSubscript().run()}
+          >
+            <SubscriptIcon size={16} />
+          </button>
 
-        {/* 게시글 에러 */}
-        {postsError && (
-          <div className='text-center text-red-600 py-4'>
-            <p className='text-sm'>Error loading posts: {postsError.message}</p>
-          </div>
-        )}
+          {/* 링크 및 이미지 */}
+          <button
+            onClick={() => {
+              const url = window.prompt('URL을 입력하세요:');
+              if (url) editor?.chain().focus().setLink({ href: url }).run();
+            }}
+          >
+            <LinkIcon size={16} />
+          </button>
+          <button onClick={() => editor?.chain().focus().unsetLink().run()}>
+            <Unlink size={16} />
+          </button>
+          <div className='relative'>
+            <button onClick={() => setShowImageUpload(!showImageUpload)}>
+              <ImageIcon size={16} />
+            </button>
 
-        {/* 게시글 목록 */}
-        {posts && posts.length > 0 && (
-          <div className='space-y-4'>
-            {posts.map(post => (
-              <div
-                key={post.id}
-                className='p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all'
-              >
-                <h4 className='font-semibold text-gray-800 mb-2'>
-                  {post.title}
+            {/* 이미지 업로드 모달 */}
+            {showImageUpload && (
+              <div className='absolute top-full left-0 mt-1 p-3 bg-white border border-gray-300 rounded-lg shadow-lg z-10 min-w-[250px]'>
+                <h4 className='text-sm font-medium text-gray-700 mb-3'>
+                  이미지 추가
                 </h4>
-                <p className='text-gray-600 text-sm leading-relaxed'>
-                  {post.body}
-                </p>
-                <div className='mt-3 pt-3 border-t border-gray-100'>
-                  <span className='text-xs text-gray-500'>
-                    Post ID: {post.id}
-                  </span>
-                </div>
+
+                {/* 파일 업로드 버튼 */}
+                <button
+                  onClick={handleFileButtonClick}
+                  className='w-full mb-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm'
+                >
+                  📁 파일에서 선택
+                </button>
+
+                {/* URL 입력 버튼 */}
+                <button
+                  onClick={handleImageUrl}
+                  className='w-full mb-2 px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm'
+                >
+                  🔗 URL로 추가
+                </button>
+
+                {/* 취소 버튼 */}
+                <button
+                  onClick={() => setShowImageUpload(false)}
+                  className='w-full px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-sm'
+                >
+                  취소
+                </button>
+
+                {/* 숨겨진 파일 입력 */}
+                <input
+                  ref={fileInputRef}
+                  type='file'
+                  accept='image/*'
+                  onChange={handleFileSelect}
+                  className='hidden'
+                />
               </div>
-            ))}
+            )}
           </div>
-        )}
 
-        {/* 게시글이 없을 때 */}
-        {posts && posts.length === 0 && !postsLoading && (
-          <div className='text-center py-8 text-gray-500'>
-            <p>No posts found for this user</p>
-          </div>
-        )}
+          {/* 실행 취소/다시 실행 */}
+          <button onClick={() => editor?.chain().focus().undo().run()}>
+            <Undo size={16} />
+          </button>
+          <button onClick={() => editor?.chain().focus().redo().run()}>
+            <Redo size={16} />
+          </button>
+        </div>
       </div>
-    </div>
-  );
-};
 
-export default UserDetail;
-```
+      {/* 에디터 내용 영역 */}
+      <div className='border border-gray-300 border-t-0 rounded-b-lg min-h-[500px] p-4'>
+        <EditorContent editor={editor} />
+      </div>
 
-- `/src/components/PostManager.tsx` 생성
-- 게시글 관리
-
-```tsx
-// 게시글 CRUD
-// useQuery 와 useMutation 활용
-'use client';
-
-import {
-  useCreatePost,
-  useDeletePost,
-  usePosts,
-  useUpdatePost,
-} from '@/hooks/usePosts';
-import { useUserSelection } from '@/hooks/useQueryIntergration';
-import { useState } from 'react';
-
-const PostManager = () => {
-  // 선택된 사용자 정보
-  const { selectedUserId } = useUserSelection();
-
-  // 게시글 목록을 가져옴
-  const {
-    data: posts,
-    isLoading,
-    error,
-  } = usePosts(selectedUserId || undefined);
-
-  // Mutation 훅들
-  const createPostMutation = useCreatePost();
-  const updatePostMutation = useUpdatePost();
-  const deletePostMutation = useDeletePost();
-
-  // 컴포넌트 활용 state
-  const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [newPost, setNewPost] = useState({ title: '', body: '' });
-  const [editPost, setEditPost] = useState({ title: '', body: '' });
-
-  // 새 게시글 생성 처리
-  const handleCreatePost = async () => {
-    if (!newPost.title.trim() || !newPost.body.trim()) return;
-    try {
-      // Mutation객체.mutateAsync : 비동기로 뮤테이션을 실행하는 함수이다.
-      await createPostMutation.mutateAsync({
-        // number가 들어와야 한다.
-        userId: selectedUserId || 1,
-        title: newPost.title,
-        body: newPost.body,
-      });
-      // 성공시 내용 초기화
-      setNewPost({ title: '', body: '' });
-      setIsCreating(false);
-    } catch (error) {
-      console.log('새글 등록 실패 : ', error);
-    }
-  };
-
-  // 게시글 수정 처리
-  const handleUpdatePost = async (id: number) => {
-    if (!editPost.title.trim() || !editPost.body.trim()) {
-      return;
-    }
-    try {
-      await updatePostMutation.mutateAsync({
-        id,
-        post: {
-          title: editPost.title,
-          body: editPost.body,
-        },
-      });
-
-      // 성공시
-      setEditPost({ title: '', body: '' });
-      setEditingId(null);
-    } catch (error) {
-      console.log('수정에 실패했습니다:', error);
-    }
-  };
-
-  // 게시글 삭제 처리
-  const handleDeletePost = async (id: number) => {
-    if (!confirm('게시글 삭제?')) return;
-    try {
-      await deletePostMutation.mutateAsync(id);
-    } catch (error) {
-      console.log('삭제 실패 : ', error);
-    }
-  };
-
-  // 게시글 편집 시작
-  const startEdit = (post: any) => {
-    setEditingId(post.id);
-    setEditPost({ title: post.title, body: post.body });
-  };
-  // 게시글 편집 취소
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditPost({ title: '', body: '' });
-  };
-
-  return (
-    <div className='p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-lg space-y-6'>
-      {/* 컴포넌트 제목 */}
-      <div className='flex justify-between items-center'>
-        <h2 className='text-2xl font-bold text-gray-800'>Posts Manager</h2>
-
-        {/* 새 게시글 생성 버튼 */}
+      {/* 하단 버튼 영역 */}
+      <div className='flex justify-between mt-4'>
+        <button onClick={() => setShowPreview(!showPreview)}>
+          {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
+          {showPreview ? '편집 모드' : '미리보기'}
+        </button>
         <button
-          onClick={() => setIsCreating(true)}
-          className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
+          onClick={() => {
+            console.log(editor?.getHTML());
+            alert('저장되었습니다!');
+          }}
         >
-          Create New Post
+          <Save size={16} />
+          저장
         </button>
       </div>
 
-      {/* 새 게시글 생성 폼 */}
-      {isCreating && (
-        <div className='p-4 border border-blue-200 rounded-lg bg-blue-50'>
-          <h3 className='text-lg font-semibold text-gray-800 mb-4'>
-            Create New Post
-          </h3>
-          <div className='space-y-4'>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>
-                Title
-              </label>
-              <input
-                type='text'
-                value={newPost.title}
-                onChange={e =>
-                  setNewPost({ ...newPost, title: e.target.value })
-                }
-                className='w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500'
-                placeholder='Enter post title...'
-              />
-            </div>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>
-                Content
-              </label>
-              <textarea
-                value={newPost.body}
-                onChange={e => setNewPost({ ...newPost, body: e.target.value })}
-                rows={4}
-                className='w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500'
-                placeholder='Enter post content...'
-              />
-            </div>
-            <div className='flex space-x-2'>
-              <button
-                onClick={handleCreatePost}
-                disabled={createPostMutation.isPending}
-                className='px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 transition-colors'
-              >
-                {createPostMutation.isPending ? 'Creating...' : 'Create Post'}
-              </button>
-              <button
-                onClick={() => {
-                  setIsCreating(false);
-                  setNewPost({ title: '', body: '' });
-                }}
-                className='px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors'
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+      {/* 미리보기 영역 */}
+      {showPreview && (
+        <div className='mt-6 p-4 border rounded-lg bg-gray-50'>
+          <h3 className='text-lg font-bold mb-2'>미리보기</h3>
+          <div
+            className='prose prose-lg max-w-none'
+            dangerouslySetInnerHTML={{ __html: editor?.getHTML() || '' }}
+          />
         </div>
       )}
-
-      {/* 게시글 목록 */}
-      <div>
-        <h3 className='text-lg font-semibold text-gray-700 mb-4'>
-          Posts ({posts?.length || 0})
-        </h3>
-
-        {/* 로딩 상태 */}
-        {isLoading && (
-          <div className='text-center py-8'>
-            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto'></div>
-            <p className='mt-2 text-gray-600'>Loading posts...</p>
-          </div>
-        )}
-
-        {/* 에러 상태 */}
-        {error && (
-          <div className='text-center text-red-600 py-8'>
-            <p className='text-lg font-semibold'>Error loading posts</p>
-            <p className='text-sm mt-1'>{error.message}</p>
-          </div>
-        )}
-
-        {/* 게시글 목록 */}
-        {posts && posts.length > 0 && (
-          <div className='space-y-4'>
-            {posts.map(post => (
-              <div
-                key={post.id}
-                className='p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all'
-              >
-                {editingId === post.id ? (
-                  // 편집 모드
-                  <div className='space-y-4'>
-                    <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>
-                        Title
-                      </label>
-                      <input
-                        type='text'
-                        value={editPost.title}
-                        onChange={e =>
-                          setEditPost({ ...editPost, title: e.target.value })
-                        }
-                        className='w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500'
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>
-                        Content
-                      </label>
-                      <textarea
-                        value={editPost.body}
-                        onChange={e =>
-                          setEditPost({ ...editPost, body: e.target.value })
-                        }
-                        rows={3}
-                        className='w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500'
-                      />
-                    </div>
-                    <div className='flex space-x-2'>
-                      <button
-                        onClick={() => handleUpdatePost(post.id)}
-                        disabled={updatePostMutation.isPending}
-                        className='px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-50 transition-colors'
-                      >
-                        {updatePostMutation.isPending ? 'Saving...' : 'Save'}
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className='px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors'
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  // 표시 모드
-                  <div>
-                    <h4 className='font-semibold text-gray-800 mb-2'>
-                      {post.title}
-                    </h4>
-                    <p className='text-gray-600 text-sm leading-relaxed mb-3'>
-                      {post.body}
-                    </p>
-                    <div className='flex justify-between items-center'>
-                      <span className='text-xs text-gray-500'>
-                        Post ID: {post.id}
-                      </span>
-                      <div className='flex space-x-2'>
-                        <button
-                          onClick={() => startEdit(post)}
-                          className='px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600 transition-colors'
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeletePost(post.id)}
-                          disabled={deletePostMutation.isPending}
-                          className='px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 disabled:opacity-50 transition-colors'
-                        >
-                          {deletePostMutation.isPending
-                            ? 'Deleting...'
-                            : 'Delete'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* 게시글이 없을 때 */}
-        {posts && posts.length === 0 && !isLoading && (
-          <div className='text-center py-8 text-gray-500'>
-            <p>No posts found</p>
-          </div>
-        )}
-      </div>
     </div>
   );
-};
-
-export default PostManager;
+}
 ```
 
-- `/src/components/ReactQueryDemo.tsx` 생성
+#### 🎯 학습 목표:
+
+- **완전한 에디터** 구현 방법
+- **색상 및 하이라이트** 기능
+- **텍스트 정렬** 기능
+- **위첨자/아래첨자** 기능
+- **고급 툴바** 디자인
+
+#### ✨ 완전한 에디터의 특징:
+
+- **글자색상**: 20가지 색상 팔레트 + 커스텀 색상
+- **하이라이트**: 다양한 색상으로 텍스트 강조
+- **텍스트 정렬**: 좌, 중앙, 우, 양쪽 정렬
+- **위첨자/아래첨자**: 수학 공식이나 각주 작성
+- **밑줄**: 기본 밑줄 기능
+- **모든 제목 레벨**: H1~H6 완전 지원
+- **고급 툴바**: 그룹핑된 기능별 버튼
+- **이미지 업로드**: 파일 업로드 + URL 입력 지원
+
+### 2.2 아이콘 툴바가 적용된 기본 Tiptap 에디터
+
+#### 📁 파일 경로: `src/components/TiptapEditor.tsx`
 
 ```tsx
 'use client';
-import { usePrefetchQuery } from '@/hooks/useQueryIntergration';
-import { useState } from 'react';
-import UsersList from './UsersList';
-import UserDetail from './UserDetail';
-import PostManager from './PostManager';
 
-// 테스트 컴포넌트
-function ReactQueryDemo() {
-  // 프리패치 기능으로 데이터를 사용자가 필요한 것을 예측 캐싱
-  const { prefetchUser, prefetchUserPosts, prefetchPost } = usePrefetchQuery();
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
+  Code,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
+  Redo,
+} from 'lucide-react'; // 아이콘 라이브러리
 
-  // 컴포넌트 상태로서 프리패치 데모용
-  const [prefetchUserId, setPrefetchUserId] = useState(1);
-  const [prefetchPostId, setPrefetchPostId] = useState(1);
+export default function TiptapEditor() {
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: '<p>Hello <strong>World</strong>!</p>',
+    immediatelyRender: false, // SSR hydration 불일치 방지
+  });
 
   return (
-    <div className='min-h-screen bg-gray-100 py-8'>
-      <div className='max-w-7xl mx-auto px-4'>
-        {/* 페이지 헤더 */}
-        <div className='text-center mb-8'>
-          <h1 className='text-4xl font-bold text-gray-800 mb-4'>
-            React Query Demo
-          </h1>
-          <p className='text-lg text-gray-600'>
-            React Query를 활용한 현대적인 서버 상태 관리 예제
-          </p>
+    <div className='max-w-4xl mx-auto p-6'>
+      <h2 className='text-2xl font-bold mb-4'>Tiptap 기본 에디터</h2>
+
+      {/* 아이콘 툴바 */}
+      <div className='border border-gray-300 rounded-t-lg p-2 bg-gray-50'>
+        <div className='flex flex-wrap gap-1'>
+          {/* 굵은 글씨 버튼 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('bold')
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='굵은 글씨 (Ctrl+B)'
+          >
+            <Bold size={16} />
+          </button>
+
+          {/* 기울임 버튼 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('italic')
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='기울임 (Ctrl+I)'
+          >
+            <Italic size={16} />
+          </button>
+
+          {/* 구분선 */}
+          <div className='w-px h-8 bg-gray-300 mx-1'></div>
+
+          {/* 제목 버튼들 */}
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('heading', { level: 1 })
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='제목 1'
+          >
+            <Heading1 size={16} />
+          </button>
+
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('heading', { level: 2 })
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='제목 2'
+          >
+            <Heading2 size={16} />
+          </button>
+
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 3 }).run()
+            }
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('heading', { level: 3 })
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='제목 3'
+          >
+            <Heading3 size={16} />
+          </button>
+
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 4 }).run()
+            }
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('heading', { level: 4 })
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='제목 4'
+          >
+            <Heading4 size={16} />
+          </button>
+
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 5 }).run()
+            }
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('heading', { level: 5 })
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='제목 5'
+          >
+            <Heading5 size={16} />
+          </button>
+
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 6 }).run()
+            }
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('heading', { level: 6 })
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='제목 6'
+          >
+            <Heading6 size={16} />
+          </button>
+
+          {/* 코드 블록 버튼 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('codeBlock')
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='코드 블록'
+          >
+            <Code size={16} />
+          </button>
+
+          {/* 구분선 */}
+          <div className='w-px h-8 bg-gray-300 mx-1'></div>
+
+          {/* 목록 버튼들 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('bulletList')
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='순서 없는 목록'
+          >
+            <List size={16} />
+          </button>
+
+          <button
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('orderedList')
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='순서 있는 목록'
+          >
+            <ListOrdered size={16} />
+          </button>
+
+          {/* 인용 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.isActive('blockquote')
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-700'
+            }`}
+            title='인용'
+          >
+            <Quote size={16} />
+          </button>
+
+          {/* 구분선 */}
+          <div className='w-px h-8 bg-gray-300 mx-1'></div>
+
+          {/* 실행 취소/다시 실행 */}
+          <button
+            onClick={() => editor?.chain().focus().undo().run()}
+            disabled={!editor?.can().undo()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.can().undo() ? 'text-gray-700' : 'text-gray-400'
+            }`}
+            title='실행 취소 (Ctrl+Z)'
+          >
+            <Undo size={16} />
+          </button>
+
+          <button
+            onClick={() => editor?.chain().focus().redo().run()}
+            disabled={!editor?.can().redo()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+              editor?.can().redo() ? 'text-gray-700' : 'text-gray-400'
+            }`}
+            title='다시 실행 (Ctrl+Y)'
+          >
+            <Redo size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* 에디터 내용 영역 */}
+      <div className='border border-gray-300 border-t-0 rounded-b-lg min-h-[300px] p-4'>
+        <EditorContent editor={editor} />
+      </div>
+    </div>
+  );
+}
+```
+
+#### 🎯 학습 목표:
+
+- **아이콘 툴바** 구현 방법
+- **Lucide React** 아이콘 라이브러리 사용법
+- **툴바 그룹핑** 및 **구분선** 활용
+- **툴팁** 및 **접근성** 개선
+- **H1~H6 제목** 기능 구현
+
+#### ✨ 아이콘 툴바의 장점:
+
+- **직관적인 UI**: 아이콘으로 기능을 쉽게 인식
+- **공간 효율성**: 텍스트보다 작은 공간 사용
+- **일관성**: 모든 에디터에서 동일한 아이콘 사용
+- **국제화**: 언어에 관계없이 이해 가능
+- **접근성**: 툴팁으로 기능 설명 제공
+- **완전한 제목 지원**: H1~H6 모든 제목 레벨 지원
+
+#### 🎨 툴바 디자인 특징:
+
+- **그룹핑**: 관련 기능들을 구분선으로 분리
+- **상태 표시**: 활성화된 기능을 색상으로 구분
+- **호버 효과**: 마우스 오버 시 시각적 피드백
+- **비활성화**: 사용할 수 없는 기능은 회색으로 표시
+
+### 2.2 기본 Tiptap 에디터 생성 (텍스트 버전)
+
+**파일 경로**: `src/components/TiptapEditor.tsx`
+
+#### 📝 코드 설명:
+
+```tsx
+'use client'; // Next.js 13+ App Router에서 클라이언트 컴포넌트임을 명시
+
+import { useEditor, EditorContent } from '@tiptap/react'; // Tiptap React 훅과 컴포넌트
+import StarterKit from '@tiptap/starter-kit'; // 기본 확장 패키지
+import { useState } from 'react'; // React 상태 관리
+
+/**
+ * 기본 Tiptap 에디터 컴포넌트
+ * - WYSIWYG 에디터 기능
+ * - 기본 서식 도구 제공
+ * - 실시간 편집 및 미리보기
+ */
+export default function TiptapEditor() {
+  // 에디터 인스턴스를 생성하고 관리
+  const editor = useEditor({
+    extensions: [StarterKit], // 기본 확장 패키지 사용
+    content: '<p>Hello <strong>World</strong>!</p>', // 초기 내용 (HTML 형식)
+    editorProps: {
+      attributes: {
+        class:
+          'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none', // Tailwind CSS 스타일링
+      },
+    },
+  });
+
+  return (
+    <div className='max-w-4xl mx-auto p-6'>
+      <h2 className='text-2xl font-bold mb-4'>Tiptap 기본 에디터</h2>
+
+      {/* 에디터 툴바 */}
+      <div className='border border-gray-300 rounded-t-lg p-2 bg-gray-50'>
+        <div className='flex flex-wrap gap-2'>
+          {/* 굵은 글씨 버튼 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+            className={`px-3 py-1 rounded text-sm ${
+              editor?.isActive('bold')
+                ? 'bg-blue-500 text-white'
+                : 'bg-white hover:bg-gray-100'
+            }`}
+          >
+            Bold
+          </button>
+
+          {/* 기울임 버튼 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            className={`px-3 py-1 rounded text-sm ${
+              editor?.isActive('italic')
+                ? 'bg-blue-500 text-white'
+                : 'bg-white hover:bg-gray-100'
+            }`}
+          >
+            Italic
+          </button>
+
+          {/* 취소선 버튼 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleStrike().run()}
+            className={`px-3 py-1 rounded text-sm ${
+              editor?.isActive('strike')
+                ? 'bg-blue-500 text-white'
+                : 'bg-white hover:bg-gray-100'
+            }`}
+          >
+            Strike
+          </button>
+
+          {/* 제목 버튼 */}
+          <button
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            className={`px-3 py-1 rounded text-sm ${
+              editor?.isActive('heading', { level: 1 })
+                ? 'bg-blue-500 text-white'
+                : 'bg-white hover:bg-gray-100'
+            }`}
+          >
+            H1
+          </button>
+
+          {/* 코드 블록 버튼 */}
+          <button
+            onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+            className={`px-3 py-1 rounded text-sm ${
+              editor?.isActive('codeBlock')
+                ? 'bg-blue-500 text-white'
+                : 'bg-white hover:bg-gray-100'
+            }`}
+          >
+            Code Block
+          </button>
+        </div>
+      </div>
+
+      {/* 에디터 내용 영역 */}
+      <div className='border border-gray-300 border-t-0 rounded-b-lg min-h-[300px] p-4'>
+        <EditorContent editor={editor} />
+      </div>
+    </div>
+  );
+}
+```
+
+#### 🔍 각 부분 상세 설명:
+
+1. **`useEditor()`**: Tiptap 에디터 인스턴스를 생성하는 훅
+2. **`extensions: [StarterKit]`**: 기본 확장 패키지로 기본 기능 제공
+3. **`content`**: 초기 에디터 내용 (HTML 형식)
+4. **`editorProps`**: 에디터 속성 설정 (스타일링 등)
+5. **`EditorContent`**: 실제 에디터 내용을 렌더링하는 컴포넌트
+6. **`editor?.chain().focus().toggleBold().run()`**: 체이닝 방식으로 명령 실행
+
+#### 🎯 학습 목표:
+
+- Tiptap 에디터의 기본 구조 이해
+- useEditor 훅 활용법
+- 체이닝 방식의 명령 실행
+- 커스텀 툴바 구현
+
+### 2.2 페이지에 추가
+
+**파일 경로**: `src/app/page.tsx`
+
+페이지에 Tiptap 에디터 추가:
+
+```tsx
+// Tiptap 에디터 컴포넌트 임포트
+import TiptapEditor from '@/components/TiptapEditor';
+
+// 기존 섹션들에 추가
+{
+  /* Tiptap 에디터 섹션 */
+}
+<section>
+  <h2 className='text-2xl font-bold mb-4'>7. Tiptap 기본 에디터</h2>
+  <TiptapEditor />
+</section>;
+```
+
+## 🎨 3. Tiptap 고급 기능 구현
+
+### 3.1 확장 기능이 포함된 에디터
+
+**파일 경로**: `src/components/AdvancedTiptapEditor.tsx`
+
+```tsx
+'use client';
+
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+
+/**
+ * 고급 Tiptap 에디터 컴포넌트
+ * - 이미지 삽입 기능
+ * - 링크 추가 기능
+ * - 확장된 툴바
+ */
+export default function AdvancedTiptapEditor() {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Image.configure({
+        HTMLAttributes: {
+          class: 'max-w-full h-auto',
+        },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-500 underline',
+        },
+      }),
+    ],
+    content: '<p>고급 기능이 포함된 에디터입니다.</p>',
+  });
+
+  return (
+    <div className='max-w-4xl mx-auto p-6'>
+      <h2 className='text-2xl font-bold mb-4'>고급 Tiptap 에디터</h2>
+
+      {/* 확장된 툴바 */}
+      <div className='border border-gray-300 rounded-t-lg p-2 bg-gray-50'>
+        <div className='flex flex-wrap gap-2'>
+          {/* 기본 서식 버튼들 */}
+          <button onClick={() => editor?.chain().focus().toggleBold().run()}>
+            Bold
+          </button>
+          <button onClick={() => editor?.chain().focus().toggleItalic().run()}>
+            Italic
+          </button>
+
+          {/* 링크 추가 버튼 */}
+          <button
+            onClick={() => {
+              const url = window.prompt('URL을 입력하세요:');
+              if (url) {
+                editor?.chain().focus().setLink({ href: url }).run();
+              }
+            }}
+          >
+            Link
+          </button>
+
+          {/* 이미지 추가 버튼 */}
+          <button
+            onClick={() => {
+              const url = window.prompt('이미지 URL을 입력하세요:');
+              if (url) {
+                editor?.chain().focus().setImage({ src: url }).run();
+              }
+            }}
+          >
+            Image
+          </button>
+        </div>
+      </div>
+
+      <div className='border border-gray-300 border-t-0 rounded-b-lg min-h-[400px] p-4'>
+        <EditorContent editor={editor} />
+      </div>
+    </div>
+  );
+}
+```
+
+### 3.2 다크 모드 Tiptap 에디터
+
+**파일 경로**: `src/components/DarkTiptapEditor.tsx`
+
+```tsx
+'use client';
+
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { useState } from 'react';
+
+/**
+ * 다크 모드 Tiptap 에디터 컴포넌트
+ * - 라이트/다크 테마 전환
+ * - 테마별 스타일링
+ * - 조건부 렌더링
+ */
+export default function DarkTiptapEditor() {
+  const [isDark, setIsDark] = useState(false);
+
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: '<p>다크 모드 에디터입니다.</p>',
+    editorProps: {
+      attributes: {
+        class: `prose ${isDark ? 'prose-invert' : ''} mx-auto focus:outline-none`,
+      },
+    },
+  });
+
+  return (
+    <div
+      className={`max-w-4xl mx-auto p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white'}`}
+    >
+      <h2 className='text-2xl font-bold mb-4'>다크 모드 Tiptap 에디터</h2>
+
+      {/* 테마 토글 버튼 */}
+      <button
+        onClick={() => setIsDark(!isDark)}
+        className='mb-4 px-4 py-2 bg-blue-500 text-white rounded'
+      >
+        {isDark ? '라이트 모드' : '다크 모드'}
+      </button>
+
+      <div
+        className={`border rounded-lg ${isDark ? 'border-gray-600' : 'border-gray-300'}`}
+      >
+        <div className={`p-2 ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
+          <button onClick={() => editor?.chain().focus().toggleBold().run()}>
+            Bold
+          </button>
+          <button onClick={() => editor?.chain().focus().toggleItalic().run()}>
+            Italic
+          </button>
         </div>
 
-        {/* 프리페치 데모 섹션 */}
-        <div className='mb-8 p-6 bg-blue-50 rounded-xl'>
-          <h2 className='text-xl font-semibold text-blue-800 mb-4'>
-            🚀 Prefetch Demo
-          </h2>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-            {/* 사용자 프리페치 */}
-            <div className='bg-white p-4 rounded-lg'>
-              <h3 className='font-semibold text-gray-700 mb-2'>
-                Prefetch User
-              </h3>
-              <div className='space-y-2'>
-                <input
-                  type='number'
-                  value={prefetchUserId}
-                  onChange={e => setPrefetchUserId(Number(e.target.value))}
-                  className='w-full px-2 py-1 border border-gray-300 rounded text-sm'
-                  placeholder='User ID'
-                />
-                <button
-                  onClick={() => prefetchUser(prefetchUserId)}
-                  className='w-full px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors'
-                >
-                  Prefetch User
-                </button>
-              </div>
-            </div>
-
-            {/* 게시글 프리페치 */}
-            <div className='bg-white p-4 rounded-lg'>
-              <h3 className='font-semibold text-gray-700 mb-2'>
-                Prefetch Post
-              </h3>
-              <div className='space-y-2'>
-                <input
-                  type='number'
-                  value={prefetchPostId}
-                  onChange={e => setPrefetchPostId(Number(e.target.value))}
-                  className='w-full px-2 py-1 border border-gray-300 rounded text-sm'
-                  placeholder='Post ID'
-                />
-                <button
-                  onClick={() => prefetchPost(prefetchPostId)}
-                  className='w-full px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors'
-                >
-                  Prefetch Post
-                </button>
-              </div>
-            </div>
-
-            {/* 사용자 게시글 프리페치 */}
-            <div className='bg-white p-4 rounded-lg'>
-              <h3 className='font-semibold text-gray-700 mb-2'>
-                Prefetch User Posts
-              </h3>
-              <div className='space-y-2'>
-                <input
-                  type='number'
-                  value={prefetchUserId}
-                  onChange={e => setPrefetchUserId(Number(e.target.value))}
-                  className='w-full px-2 py-1 border border-gray-300 rounded text-sm'
-                  placeholder='User ID'
-                />
-                <button
-                  onClick={() => prefetchUserPosts(prefetchUserId)}
-                  className='w-full px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 transition-colors'
-                >
-                  Prefetch Posts
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 메인 콘텐츠 그리드 */}
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
-          {/* 사용자 목록 */}
-          <div>
-            <UsersList />
-          </div>
-
-          {/* 선택된 사용자 상세 정보 */}
-          <div>
-            <UserDetail />
-          </div>
-        </div>
-
-        {/* 게시글 관리 섹션 */}
-        <div className='mt-8'>
-          <PostManager />
+        <div
+          className={`p-4 min-h-[300px] ${isDark ? 'bg-gray-900' : 'bg-white'}`}
+        >
+          <EditorContent editor={editor} />
         </div>
       </div>
     </div>
   );
 }
-
-export default ReactQueryDemo;
 ```
 
-- `/src/app/page.tsx` 배치함
+## 📝 4. Tiptap vs React MD Editor 비교
+
+### 4.1 특징 비교
+
+| 기능             | Tiptap      | React MD Editor |
+| ---------------- | ----------- | --------------- |
+| **타입**         | WYSIWYG     | 마크다운        |
+| **학습 곡선**    | 중간        | 쉬움            |
+| **확장성**       | 매우 높음   | 중간            |
+| **커스터마이징** | 매우 높음   | 중간            |
+| **성능**         | 높음        | 높음            |
+| **사용 사례**    | 리치 텍스트 | 기술 문서       |
+
+### 4.2 언제 사용할까?
+
+#### Tiptap 사용 시기:
+
+- 복잡한 문서 편집이 필요한 경우
+- 표, 이미지, 링크 등 다양한 요소가 필요한 경우
+- 사용자 친화적인 WYSIWYG 인터페이스가 필요한 경우
+
+#### React MD Editor 사용 시기:
+
+- 마크다운 문법을 알고 있는 사용자 대상
+- 기술 문서나 블로그 작성
+- 간단하고 빠른 구현이 필요한 경우
+
+## 🎯 5. Tiptap 실습 과제
+
+### 과제 1: 기본 Tiptap 에디터 구현
+
+- Tiptap 에디터 컴포넌트 생성
+- 기본 툴바 기능 구현
+- HTML 출력 기능 테스트
+
+### 과제 2: 확장 기능 추가
+
+- 이미지 삽입 기능
+- 링크 추가 기능
+- 테이블 기능
+
+### 과제 3: 커스텀 확장 개발
+
+- 커스텀 버튼 추가
+- 특별한 서식 기능 구현
+- 다크 모드 지원
+
+## 📚 6. Tiptap 추가 학습 자료
+
+### 유용한 링크
+
+- [Tiptap 공식 문서](https://tiptap.dev/)
+- [Tiptap React 가이드](https://tiptap.dev/guide/react)
+- [Tiptap 확장 기능](https://tiptap.dev/guide/custom-extensions)
+
+### 관련 라이브러리
+
+- `@tiptap/core`: 핵심 기능
+- `@tiptap/react`: React 통합
+- `@tiptap/starter-kit`: 기본 확장 패키지
+- `@tiptap/extension-*`: 다양한 확장 기능
+
+## 🐛 7. Tiptap 문제 해결
+
+### 자주 발생하는 문제들
+
+#### 에디터가 렌더링되지 않는 문제
 
 ```tsx
-import ReactQueryDemo from '@/components/ReactQueryDemo';
+// 해결책: useEditor 훅의 의존성 배열 확인
+const editor = useEditor(
+  {
+    extensions: [StarterKit],
+    content: '<p>Hello World!</p>',
+  },
+  []
+); // 빈 의존성 배열 추가
+```
 
-export default function Home() {
-  return (
-    <div>
-      <h2>React Query</h2>
-      <ReactQueryDemo />
-    </div>
-  );
+#### 확장 기능이 작동하지 않는 문제
+
+```tsx
+// 해결책: 확장 기능을 올바르게 임포트하고 설정
+import Image from '@tiptap/extension-image';
+
+const editor = useEditor({
+  extensions: [
+    StarterKit,
+    Image.configure({
+      // 설정 옵션
+    }),
+  ],
+});
+```
+
+#### 스타일이 적용되지 않는 문제
+
+```tsx
+// 해결책: Tailwind CSS prose 클래스 사용
+editorProps: {
+  attributes: {
+    class: 'prose prose-sm mx-auto focus:outline-none',
+  },
 }
 ```
+
+#### 확장 패키지를 찾을 수 없는 오류
+
+```bash
+# 오류: Module not found: Can't resolve '@tiptap/extension-image'
+# 해결책: 필요한 확장 패키지 설치
+npm install @tiptap/extension-image @tiptap/extension-link
+```
+
+#### 확장 기능 임포트 오류
+
+```tsx
+// ❌ 잘못된 임포트 (패키지가 설치되지 않은 경우)
+import Image from '@tiptap/extension-image';
+
+// ✅ 올바른 임포트 (패키지 설치 후)
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+```
+
+#### SSR Hydration 불일치 오류
+
+```tsx
+// 오류: Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false`
+// 해결책: immediatelyRender: false 옵션 추가
+
+const editor = useEditor({
+  extensions: [StarterKit],
+  content: '<p>Hello World!</p>',
+  immediatelyRender: false, // SSR hydration 불일치 방지
+});
+```
+
+#### Next.js App Router에서 Tiptap 사용 시 주의사항
+
+```tsx
+// ✅ 권장: 'use client' 지시어 사용
+'use client';
+
+import { useEditor, EditorContent } from '@tiptap/react';
+
+export default function TiptapEditor() {
+  const editor = useEditor({
+    extensions: [StarterKit],
+    immediatelyRender: false, // SSR 문제 해결
+  });
+
+  return <EditorContent editor={editor} />;
+}
+```
+
+---
+
+## 🔧 6. Tiptap 고급 트러블슈팅
+
+### 6.1 "Duplicate extension names" 에러
+
+**에러 메시지:**
+
+```
+[tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
+```
+
+**해결 방법:**
+StarterKit에서 중복되는 확장들을 비활성화:
+
+```tsx
+StarterKit.configure({
+  link: false, // Link 확장을 별도로 설정
+  underline: false, // Underline 확장을 별도로 설정
+}),
+```
+
+### 6.2 "TextStyle import" 에러
+
+**에러 메시지:**
+
+```
+Attempted import error: '@tiptap/extension-text-style' does not contain a default export
+```
+
+**해결 방법:**
+TextStyle을 named import로 변경:
+
+```tsx
+// ❌ 잘못된 방법
+import TextStyle from '@tiptap/extension-text-style';
+
+// ✅ 올바른 방법
+import { TextStyle } from '@tiptap/extension-text-style';
+```
+
+### 6.3 "textStyle mark type" 에러
+
+**에러 메시지:**
+
+```
+There is no mark type named 'textStyle'. Maybe you forgot to add the extension?
+```
+
+**해결 방법:**
+TextStyle 확장을 Color 확장보다 먼저 추가:
+
+```tsx
+extensions: [
+  TextStyle, // Color 확장보다 먼저
+  Color,
+  // ... 다른 확장들
+],
+```
+
+### 6.4 이미지 업로드 기능
+
+#### 📁 파일 업로드 + URL 입력 지원
+
+```tsx
+// 파일을 Base64로 변환하는 함수
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
+
+// 파일 선택 시 실행되는 함수
+const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (file && file.type.startsWith('image/')) {
+    try {
+      const base64 = await fileToBase64(file);
+      editor?.chain().focus().setImage({ src: base64 }).run();
+      setShowImageUpload(false);
+    } catch (error) {
+      console.error('파일 변환 오류:', error);
+      alert('파일 업로드 중 오류가 발생했습니다.');
+    }
+  } else {
+    alert('이미지 파일만 업로드 가능합니다.');
+  }
+};
+
+// URL로 이미지 추가하는 함수
+const handleImageUrl = () => {
+  const url = window.prompt('이미지 URL을 입력하세요:');
+  if (url) {
+    editor?.chain().focus().setImage({ src: url }).run();
+  }
+};
+```
+
+#### 🎯 이미지 업로드 기능의 특징:
+
+- **파일 업로드**: 로컬 이미지 파일을 Base64로 변환하여 삽입
+- **URL 입력**: 외부 이미지 URL을 통한 이미지 삽입
+- **파일 형식 검증**: 이미지 파일만 업로드 허용
+- **에러 처리**: 파일 변환 실패 시 사용자에게 알림
+- **사용자 친화적 UI**: 모달 형태의 직관적인 인터페이스
+
+### 6.5 완전한 에디터 설정 예제
+
+```tsx
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { TextStyle } from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import TextAlign from '@tiptap/extension-text-align';
+import Highlight from '@tiptap/extension-highlight';
+import Underline from '@tiptap/extension-underline';
+import Superscript from '@tiptap/extension-superscript';
+import Subscript from '@tiptap/extension-subscript';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+
+const editor = useEditor({
+  extensions: [
+    StarterKit.configure({
+      link: false,
+      underline: false,
+    }),
+    TextStyle,
+    Color,
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+    }),
+    Highlight.configure({
+      multicolor: true,
+    }),
+    Underline,
+    Superscript,
+    Subscript,
+    Image,
+    Link,
+  ],
+  immediatelyRender: false,
+});
+```
+
+---
+
+## 🎓 학습 가이드
+
+### 📖 단계별 학습 순서
+
+#### 1단계: 마크다운 에디터 기초
+
+1. **기본 에디터** 구현 및 이해
+2. **고급 기능** (미리보기, 커스텀 툴바) 학습
+3. **실무 적용** (블로그 에디터) 구현
+4. **문제 해결** 방법 습득
+
+#### 2단계: Tiptap 에디터 기초
+
+1. **기본 Tiptap** 에디터 구현
+2. **확장 기능** (이미지, 링크) 추가
+3. **아이콘 툴바** 구현
+4. **다크 모드** 지원
+
+#### 3단계: 완전한 에디터 구현
+
+1. **모든 확장 기능** 통합
+2. **파일 업로드** 기능 구현
+3. **색상 시스템** 완성
+4. **사용자 경험** 최적화
+
+### 🔧 개발 환경 설정
+
+#### 필수 요구사항
+
+- **Node.js**: 18.0.0 이상
+- **npm**: 9.0.0 이상
+- **TypeScript**: 5.0.0 이상
+
+#### 권장 개발 도구
+
+- **VS Code**: 코드 에디터
+- **ES7+ React/Redux/React-Native snippets**: React 코드 스니펫
+- **Tailwind CSS IntelliSense**: Tailwind 자동완성
+- **TypeScript Importer**: 자동 import
+
+### 📚 추가 학습 자료
+
+#### 공식 문서
+
+- [Next.js 공식 문서](https://nextjs.org/docs)
+- [React 공식 문서](https://react.dev/)
+- [Tiptap 공식 문서](https://tiptap.dev/)
+- [Tailwind CSS 공식 문서](https://tailwindcss.com/docs)
+
+#### 유용한 리소스
+
+- [Lucide Icons](https://lucide.dev/): 아이콘 라이브러리
+- [Shadcn UI](https://ui.shadcn.com/): 컴포넌트 라이브러리
+- [React Query](https://tanstack.com/query/latest): 서버 상태 관리
+- [Zustand](https://zustand-demo.pmnd.rs/): 상태 관리
+
+### 🚀 실무 적용 팁
+
+#### 성능 최적화
+
+- **동적 임포트**: `dynamic`을 사용한 코드 분할
+- **메모이제이션**: `useMemo`, `useCallback` 활용
+- **이미지 최적화**: Next.js Image 컴포넌트 사용
+
+#### 접근성 (A11y)
+
+- **키보드 네비게이션**: Tab, Enter, Escape 키 지원
+- **스크린 리더**: ARIA 속성 추가
+- **색상 대비**: WCAG 가이드라인 준수
+
+#### 사용자 경험 (UX)
+
+- **로딩 상태**: 파일 업로드 시 로딩 인디케이터
+- **에러 처리**: 사용자 친화적인 에러 메시지
+- **반응형 디자인**: 모바일, 태블릿, 데스크톱 지원
+
+## 📞 문의사항
+
+수업 중 궁금한 점이 있으면 언제든 질문해주세요!
+
+### 💬 질문 방법
+
+1. **코드 관련**: 구체적인 에러 메시지와 함께 질문
+2. **기능 관련**: 원하는 기능과 현재 구현 상태 설명
+3. **최적화 관련**: 성능 문제나 개선 방향 제시
+
+### 🎯 학습 목표 달성 체크리스트
+
+#### 마크다운 에디터
+
+- [ ] 기본 에디터 구현 완료
+- [ ] 고급 기능 (미리보기, 커스텀 툴바) 구현
+- [ ] 다크 모드 지원
+- [ ] 이미지 삽입 기능
+- [ ] 에러 처리 및 해결
+
+#### Tiptap 에디터
+
+- [ ] 기본 Tiptap 에디터 구현
+- [ ] 확장 기능 (이미지, 링크, 색상) 추가
+- [ ] 아이콘 툴바 구현
+- [ ] 파일 업로드 기능
+- [ ] 완전한 에디터 구현
+
+#### 실무 적용
+
+- [ ] 블로그 에디터 구현
+- [ ] 사용자 경험 최적화
+- [ ] 성능 최적화
+- [ ] 접근성 개선
+- [ ] 반응형 디자인

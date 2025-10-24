@@ -1,10 +1,11 @@
-'use client';
 /**
  * UserProfile 컴포넌트 - Zustand를 사용한 사용자 인증 기능 구현
  *
  * 이 컴포넌트는 useUserStore 훅을 사용하여 사용자 로그인/로그아웃과
  * 프로필 정보 수정 기능을 제공합니다.
  */
+
+'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
@@ -22,7 +23,7 @@ import { useUserState } from '@/stores/UserStore';
  */
 export default function UserProfile() {
   // Zustand 스토어에서 사용자 관련 상태와 액션들을 가져옵니다
-  const { user, isLoggedIn, isLoading, login, logout, updateUser, setloading } =
+  const { user, isLoggedIn, isLoading, login, logout, updateUser, setLoading } =
     useUserState();
 
   // 로컬 상태: 편집 모드와 편집 중인 이름
@@ -36,14 +37,14 @@ export default function UserProfile() {
    * 실제 프로젝트에서는 API 호출로 대체되어야 합니다.
    */
   const handleLogin = () => {
-    setloading(true);
+    setLoading(true);
     // 시뮬레이션된 로그인 (실제로는 API 호출)
     setTimeout(() => {
       login({
         id: '1',
         name: 'John Doe',
         email: 'john@example.com',
-        avatar: '',
+        avatar: 'https://via.placeholder.com/150',
       });
     }, 1000);
   };

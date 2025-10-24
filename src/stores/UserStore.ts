@@ -21,8 +21,9 @@ import { persist } from 'zustand/middleware';
 // get : state 읽기
 // set : state 쓰기
 
-// 2 단계 1. localStorage 가 적용 안된버전
+// 2 단계 1. localStorage 가 적용 안된 버전
 const userStore = create<UserState>()((set, get) => ({
+  // 초기상태
   user: null,
   isLoggedIn: false,
   isLoading: false,
@@ -37,13 +38,14 @@ const userStore = create<UserState>()((set, get) => ({
     })),
 
   // 로딩 상태 설정
-  setloading: (loading: boolean) => set({ isLoading: loading }),
+  setLoading: (loading: boolean) => set({ isLoading: loading }),
 }));
 
-// 2 단계 2. localStorage 가 적용된버전
+// 2 단계 2. localStorage 가 적용된 버전
 const userLocalStore = create<UserState>()(
   persist(
     (set, get) => ({
+      // 초기상태
       user: null,
       isLoggedIn: false,
       isLoading: false,
@@ -58,15 +60,21 @@ const userLocalStore = create<UserState>()(
         })),
 
       // 로딩 상태 설정
-      setloading: (loading: boolean) => set({ isLoading: loading }),
+      setLoading: (loading: boolean) => set({ isLoading: loading }),
     }),
-    { name: 'user-storage' }
+    {
+      name: 'user-storage',
+      partialize: state => ({
+        user: state.user,
+        isLoggedIn: state.isLoggedIn,
+      }),
+    }
   )
 );
 
 // 3 단계 - custom Hook 정의
 export const useUserState = () => {
-  const { user, isLoggedIn, isLoading, login, logout, updateUser, setloading } =
+  const { user, isLoggedIn, isLoading, login, logout, updateUser, setLoading } =
     userLocalStore();
-  return { user, isLoggedIn, isLoading, login, logout, updateUser, setloading };
+  return { user, isLoggedIn, isLoading, login, logout, updateUser, setLoading };
 };
