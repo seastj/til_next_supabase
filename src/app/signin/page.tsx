@@ -7,13 +7,20 @@ import { useSignInWithKakao } from '@/hooks/mutations/useSignInWithKakao';
 import { useSignInWithPassword } from '@/hooks/mutations/useSignInWithPassword';
 import Link from 'next/link';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   // 이메일로 로그인
   const { mutate: signInPassword, isPending: isPendingPassword } =
-    useSignInWithPassword();
+    useSignInWithPassword({
+      onError: error => {
+        setPassword('');
+        // Sonner 로 띄우기
+        toast.error(error.message, { position: 'top-center' });
+      },
+    });
   const handleSignInWithEmail = () => {
     if (!email.trim()) return;
     if (!password.trim()) return;

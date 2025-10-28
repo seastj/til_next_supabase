@@ -5,6 +5,7 @@ import QueryProvider from '@/components/providers/QueryProvider';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Sun } from 'lucide-react';
+import ToastProvider from '@/components/providers/ToastProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -36,6 +37,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className='flex min-h-full flex-col'>
+          {/* 컴포넌트 배치 */}
+          <ToastProvider />
           <QueryProvider>
             <header className='h-15 border-b'>
               <div className='m-auto flex h-full w-full max-w-175 justify-between px-4'>
