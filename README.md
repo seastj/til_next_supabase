@@ -1,477 +1,73 @@
-# Zustand 리뷰
+# Zustand 미들웨어
 
-## 1. 리액트 상태(state)에 대한 이해
+- 특정 로직에 `중간에 관여하여 추가작업` 후 다음 로직 실행하는 단계
+- 회원가입 로직에 순차적 `중간단계에 로그,중복확인 등 처리`하고 결과 리턴
+- 5개의 미들웨어에 대한 이해 필요.
+- store 생성시 `중간단계에서 미들웨어 작동 후` 결과 리턴
+- `미들웨어 적용 순서가 엄청 중요함`
 
-### 1.1. 컴포넌트 상태 (로컬)
+## 1. MiddleWare 종류
 
-- useState
-- State Driling : 컴포넌트에 props 로 state 를 전달함. (반복됨)
+- combine : Store 의 `State 타입을 자동 추론`(Action 타입은 별도)
+- immer : Store 의 State 가 객체, 배열, 중첩객체, 중첩배열 등 복잡한 경우 활용
+- subscribeWithSelector : Store 내부의 특정 값 변화시 이벤트 핸들러 호출
+- persist : Store 의 값을 모두 로컬 또는 세션 등의 Storage 에 보관 옵션
+- devtools : Store 의 값을 개발자 도구에서 확인하며 디버그 진행시 활용.
 
-### 1.2. 앱 전역 상태 (글로벌)
+## 2. combine
 
-- Context API
-- Context API 를 응용한 라이브러리 : Redux, Recoil, `Zustand`, Mobx, Joitai...
+- `/src/stores/count.ts`
+- `결합한다`는 의미
+- create 로 Store 생성시 `state`와 `actions`를 한 개의 객체로 만들지 않겠다.
+- `state` 와 `actions` 를 분리해서 작성하고, 결합시키는 방식으로 Store 정의
+- `state` 의 타입을 자동추론 해주어서 편리하다.
 
-### 1.3. 네트워크 상태
+### 2.1. 작성순서
 
-- 개발자가 직접 관리함(fetch,axios)
-- 라이브러리 React Query
-
-## 2. Zustand
-
-- 레퍼런스 많음, 용량 작음, 배우기 쉬움, 설정도 `create` 로 정리됨.
-- `npm install zustand`
-
-## 3. 기본 사용법
-
-- `/src/app/counter 폴더` 생성
-- `/src/app/counter/page.tsx 파일` 생성
-
-```tsx
-function CounterPage() {
-  return (
-    <div>
-      <h1 className='text 2xl font-bold'>Counter</h1>
-    </div>
-  );
-}
-
-export default CounterPage;
-```
-
-### 3.1. 전역 stores 생성하기
-
-- `/src/stores 폴더` 생성
-- `/src/stores/count.ts 파일` 생성
-
-### 3.2. 단계별 store 생성
-
-- 단계 1
+- 단계 1.
 
 ```ts
+import { combine } from 'zustand/middleware';
 import { create } from 'zustand';
-create(콜백함수자리);
+
+create(combine(스토어에 포함될 State 객체, 콜백함수));
 ```
 
-- 단계 2
+- 단계 2.
 
 ```ts
-import { create } from 'zustand';
-create(() => {});
+create(combine({ count: 0 }, 콜백함수));
 ```
 
-- 단계 3 : 객체(store) 한개를 리턴함.
+- 단계 3.
 
 ```ts
-import { create } from 'zustand';
-create(() => {
-  return 전역변수 store 객체
-});
+create(combine({ count: 0 }, () => {}));
 ```
 
-- 단계 4 : 객체(store) 한개를 리턴함.
+- 단계 4.
 
 ```ts
-import { create } from 'zustand';
-create(() => {
-  return {};
-});
+create(combine({ count: 0 }, (set, get) => 리턴객체));
 ```
 
-- 단계 5 : store 객체에는 state 와 action 키
+- 단계 5.
+- 화살표 함수 때문에 리턴객체는 `({리턴객체})` 필수
 
 ```ts
-import { create } from 'zustand';
-create(() => {
-  return {
-    state: 초기값,
-    action: state 변경하는 함수
-  };
-});
+create(combine({ count: 0 }, (set, get) => ({ 리턴객체 })));
 ```
 
-- 단계 6 : count 만들고, action 정의하기
+- 단계 6.
 
 ```ts
-import { create } from 'zustand';
-create(() => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {},
-    decrement: () => {},
-  };
-});
+create(combine({ count: 0 }, (set, get) => ({ 키명: 기능값 })));
 ```
-
-- 단계 7 : create 함수에는 set 매개변수가 있다.
-- set 은 state 즉, count 의 값을 설정하는 기능
 
 ```ts
-import { create } from 'zustand';
-create(set => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {},
-    decrement: () => {},
-  };
-});
-```
-
-- 단계 8 : create 함수에는 set 매개변수가 있다.
-- get 은 state 즉, count 의 값을 읽는 기능
-
-```ts
-import { create } from 'zustand';
-create((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {},
-    decrement: () => {},
-  };
-});
-```
-
-- 단계 9 : get 활용하기
-
-```ts
-import { create } from 'zustand';
-create((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // get 은 store 의 객체를 반환함
-      get().count;
-    },
-    decrement: () => {},
-  };
-});
-```
-
-- 단계 10 : set 활용하기
-
-```ts
-import { create } from 'zustand';
-create((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // get 은 store 의 객체를 반환함
-      const count = get().count;
-      // set(객체)
-      set({ count: count + 1 });
-    },
-    decrement: () => {},
-  };
-});
-```
-
-- 단계 11 : set 사용 의문점
-- `set({ ...state, count:count + 1 });`
-- zustand 는 객체 내부의 state 의 키명을 기준으로 명시만 하면됨
-- 키명을 명시하고 새로운 값만 작성해 주면됨.
-- State 객체를 spread(...) 할 필요없음
-
-- 단계 12 : set 사용시 함수형태도 지원함.
-
-```ts
-import { create } from 'zustand';
-create((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // get 은 store 의 객체를 반환함
-      const count = get().count;
-      // set(객체)
-      set({ count: count + 1 });
-
-      // 함수형태 지원
-      set(() => {
-        return {};
-      });
-    },
-    decrement: () => {},
-  };
-});
-```
-
-- 단계 13 : set 사용시 함수형태도 지원함.
-
-```ts
-import { create } from 'zustand';
-create((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // get 은 store 의 객체를 반환함
-      const count = get().count;
-      // set(객체)
-      set({ count: count + 1 });
-
-      // 함수형태 지원
-      set(store => {
-        return { count: store.count };
-      });
-    },
-    decrement: () => {},
-  };
-});
-```
-
-- 단계 14 : 보통 get 은 사용하지 않는다.
-
-```ts
-import { create } from 'zustand';
-create((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // 함수형태 지원
-      set(store => {
-        return { count: store.count };
-      });
-    },
-    decrement: () => {},
-  };
-});
-```
-
-- 단계 15 : 화살표 함수 줄이기
-
-```ts
-import { create } from 'zustand';
-create((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // 함수형태 지원
-      set(store => ({ count: store.count }));
-    },
-    decrement: () => {},
-  };
-});
-```
-
-- 단계 16 : 추가 구현
-
-```ts
-import { create } from 'zustand';
-create((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // 함수형태 지원
-      set(store => ({ count: store.count + 1 }));
-    },
-    decrement: () => {
-      set(store => ({ count: store.count - 1 }));
-    },
-  };
-});
-```
-
-- 단계 17 : 타입 추가
-
-```ts
-import { create } from 'zustand';
-
-type CountStoreType = {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-};
-
-create<CountStoreType>((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // 함수형태 지원
-      set(store => ({ count: store.count + 1 }));
-    },
-    decrement: () => {
-      set(store => ({ count: store.count - 1 }));
-    },
-  };
-});
-```
-
-- 단계 18 : create 함수는 커스텀 훅을 즉시 리턴함
-
-```ts
-import { create } from 'zustand';
-
-type CountStoreType = {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-};
-
-// 커스텀 훅을 리턴해준다.
-export const useCountStore = create<CountStoreType>((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
-    // action : state 변경
-    increment: () => {
-      // 함수형태 지원
-      set(store => ({ count: store.count + 1 }));
-    },
-    decrement: () => {
-      set(store => ({ count: store.count - 1 }));
-    },
-  };
-});
-```
-
-## 4. 기본 활용하기
-
-- `/src/app/counter/page.tsx 파일`
-
-```tsx
-'use client';
-import { Button } from '@/components/ui/button';
-import { useCountStore } from '@/stores/count';
-
-function CounterPage() {
-  const { count, increment, decrement } = useCountStore();
-  return (
-    <div>
-      <h1 className='text 2xl font-bold'>Counter</h1>
-      <p>{count}</p>
-      <Button onClick={increment}>증가</Button>
-      <Button onClick={decrement}>감소</Button>
-    </div>
-  );
-}
-
-export default CounterPage;
-```
-
-## 5. 역할별로 파일 분리하기
-
-### 5.1. 컴포넌트로 분리하기
-
-- `/src/components/counter 폴더` 생성
-- `/src/components/counter/Viewer.tsx 파일` 생성
-
-```tsx
-'use client';
-import { useCountStore } from '@/stores/count';
-
-const Viewer = () => {
-  const { count } = useCountStore();
-  return <div className='text-4xl font-bold'>{count}</div>;
-};
-
-export default Viewer;
-```
-
-- `/src/components/counter/Controler.tsx 파일` 생성
-
-```tsx
-'use client';
-
-import { useCountStore } from '@/stores/count';
-import { Button } from '../ui/button';
-
-const Controler = () => {
-  const { decrement, increment } = useCountStore();
-  return (
-    <div>
-      <Button onClick={decrement}>감소</Button>
-      <Button onClick={increment}>증가</Button>
-    </div>
-  );
-};
-
-export default Controler;
-```
-
-### 5.2. page 출력하기
-
-- `/src/app/counter/page.tsx`
-
-## 6. 컴포넌트의 리랜더링 상태 파악하기
-
-### 6.1. 웹브라우저의 React Developer Tools 를 설치함.
-
-- https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=ko&pli=1
-- 설치후 > 웹브라우저 F12 > Components 탭 > Setting(톱니모양) > Highlight updates when components render 활성화
-
-### 6.2. 불필요한 리렌더링이 일어나는 이유
-
-- 버튼은 리렌더링이 필요없는데 일어나는 이유
-- 아래 구문은 count 즉, state 없지만, use훅이 전체 Store 를 반환하므로
-
-```tsx
-const { decrement, increment } = useCountStore();
-```
-
-### 6.3. 해당 문제 해결하기(간단함)
-
-- 어떤 값을 가져올지 정확히 명시한 훅을 생성한다.
-- 어떤 값을 가져올지 정확히 명시한 훅 함수를 `Selector 함수` 라고 함.
-
-```tsx
-'use client';
-
-import { useCountStore } from '@/stores/count';
-import { Button } from '../ui/button';
-
-const Controler = () => {
-  // Selector 함수 활용
-  const increment = useCountStore(store => store.increment);
-  const decrement = useCountStore(store => store.decrement);
-  return (
-    <div>
-      <Button onClick={decrement}>감소</Button>
-      <Button onClick={increment}>증가</Button>
-    </div>
-  );
-};
-
-export default Controler;
-```
-
-## 7. Store 의 구조가 불명확하다.
-
-- state 와 action 의 조합이 store 이다.
-- `actions 키` 를 명시함.
-
-```ts
-import { create } from 'zustand';
-
-type CountStoreType = {
-  count: number;
-  actions: { increment: () => void; decrement: () => void };
-};
-
-// 커스텀 훅을 리턴해준다.
-export const useCountStore = create<CountStoreType>((set, get) => {
-  return {
-    // state : 초기값
-    count: 0,
+create(
+  combine({ count: 0 }, (set, get) => ({
+    // 키명: 기능
     actions: {
       // action : state 변경
       increment: () => {
@@ -482,66 +78,56 @@ export const useCountStore = create<CountStoreType>((set, get) => {
         set(store => ({ count: store.count - 1 }));
       },
     },
-  };
-});
+  }))
+);
 ```
 
-- Controler.tsx
+### 2.2. combine 의 특징
 
-```tsx
-'use client';
+- combine(스테이트 객체, 콜백함수)
+- `스테이트 객체의 타입을 자동 추론`해 준다.
+- 전체 Store 의 타입을 추론하는건 아니다.
+- 정확히 개발자가 명시해 주기 위해서 action 은 아래처럼 작성
 
-import { useCountStore } from '@/stores/count';
-import { Button } from '../ui/button';
-
-const Controler = () => {
-  // Selector 함수 활용
-  const { increment, decrement } = useCountStore(store => store.actions);
-  return (
-    <div>
-      <Button onClick={decrement}>감소</Button>
-      <Button onClick={increment}>증가</Button>
-    </div>
-  );
-};
-
-export default Controler;
+```ts
+create(
+  combine({ count: 0 }, (set, get) => ({
+    actions: {
+      // action : state 변경
+      increment: () => {
+        get(); // 자동타입추론
+        // 함수형태 지원 (store 대신에 state 작성이 관례)
+        set(state => ({ count: state.count + 1 }));
+      },
+      decrement: () => {
+        set(state => ({ count: state.count - 1 }));
+      },
+    },
+  }))
+);
 ```
 
-## 8. store 의 state 또는 action 단어가 바뀌면 모두 뜯어 고쳐야 한다.
-
-- 복잡한 프로젝트는 Select 함수를 컴포넌트에서 직접 불러서 활용하는 경우 드물다.
-
-### 8.1. 전용 커스텀 훅으로 생성 후 활용함. (간단함)
-
-- count.ts
+### 2.3. 최종 코드
 
 ```ts
 import { create } from 'zustand';
+import { combine } from 'zustand/middleware';
 
-type CountStoreType = {
-  count: number;
-  actions: {
-    increment: () => void;
-    decrement: () => void;
-  };
-};
-
-// 커스텀 훅을 리턴해준다. 아주 좋다.
-export const useCountStore = create<CountStoreType>((set, get) => {
-  return {
-    count: 0,
+// create 함수는 hook 을 리턴한다.
+const useCountStore = create(
+  combine({ count: 0 }, (set, get) => ({
     actions: {
       increment: () => {
-        // 함수형태 지원
-        set(store => ({ count: store.count + 1 }));
+        get(); // 자동타입추론
+        // 함수형태 지원 (store 대신에 state 작성이 관례)
+        set(state => ({ count: state.count + 1 }));
       },
       decrement: () => {
-        set(store => ({ count: store.count - 1 }));
+        set(state => ({ count: state.count - 1 }));
       },
     },
-  };
-});
+  }))
+);
 
 // 전용 훅들
 export const useCount = () => {
@@ -558,41 +144,585 @@ export const useDecrement = () => {
 };
 ```
 
-### 8.2. 컴포넌트에서 활용하기
+## 3. immer
 
-- Viewer.tsx
+- state 객체를 편리하게 `불변성 관리`해주는 도구
+- 이전의 값과 새로운 값이 다르면 리렌더링 한다.
+- 이전의 객체와 새로운 객체가 다르면 리렌더링 한다.
 
-```tsx
-'use client';
-import { useCount } from '@/stores/count';
+### 3.1. immer 설치
 
-const Viewer = () => {
-  // Selector 함수
-  const count = useCount();
-  return <div className='text-4xl font-bold'>{count}</div>;
-};
-
-export default Viewer;
+```bash
+npm i immer
 ```
 
-- Controller.tsx
+### 3.2. import 해주기
 
-```tsx
-'use client';
-import { useDecrement, useIncrement } from '@/stores/count';
-import { Button } from '../ui/button';
+```ts
+import { immer } from 'zustand/middleware/immer';
+```
 
-const Controller = () => {
-  // Selector 함수 활용
-  const increment = useIncrement();
-  const decrement = useDecrement();
-  return (
-    <div>
-      <Button onClick={decrement}>Decrement</Button>
-      <Button onClick={increment}>Increment</Button>
-    </div>
-  );
+### 3.3. 적용은 순서가 중요하다.
+
+- 1 단계
+
+```ts
+const useCountStore = create();
+```
+
+- 2 단계
+
+```ts
+const useCountStore = create(immer());
+```
+
+- 3 단계
+
+```ts
+const useCountStore = create(immer(combine()));
+```
+
+### 3.4. 적용 코드
+
+```ts
+import { create } from 'zustand';
+import { combine } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+// create 함수는 hook 을 리턴한다.
+
+const useCountStore = create(
+  // 불변성 유지 immer 적용
+  immer(
+    combine({ count: 0 }, (set, get) => ({
+      actions: {
+        increment: () => {
+          get(); // 자동타입추론
+          // 함수형태 지원 (store 대신에 state 작성이 관례)
+          set(state => ({ count: state.count + 1 }));
+        },
+        decrement: () => {
+          set(state => ({ count: state.count - 1 }));
+        },
+      },
+    }))
+  )
+);
+
+// 전용 훅들
+export const useCount = () => {
+  const count = useCountStore(store => store.count);
+  return count;
 };
+export const useIncrement = () => {
+  const increment = useCountStore(store => store.actions.increment);
+  return increment;
+};
+export const useDecrement = () => {
+  const decrement = useCountStore(store => store.actions.decrement);
+  return decrement;
+};
+```
 
-export default Controller;
+## 4. subscribeWithSelector
+
+- subscribe: 구독
+- Selector: Selector 함수
+- 특정 값이 변경이 될때 추가로 함수도 같이 실행한다.
+- `state` 가 변하면 함수도 실행된다.
+- 예) 로그인을 하면 쿠키, 세션 굽고, 로그아웃 하면 쿠키, 세션 정보 지우고
+
+### 4.1. 생성단계
+
+- 단계 1.
+
+```ts
+import { combine, subscribeWithSelector } from 'zustand/middleware';
+```
+
+- 단계 2.
+
+```ts
+const useCountStore = create(subscribeWithSelector());
+```
+
+- 단계 3.
+
+```ts
+const useCountStore = create(subscribeWithSelector(immer코드));
+```
+
+- 단계 4.
+
+```ts
+const useCountStore = create(subscribeWithSelector(immer코드));
+```
+
+- 단계 5.
+
+```ts
+// create 함수는 hook 을 리턴한다.
+const useCountStore = create(
+  subscribeWithSelector(
+    // 불변성 유지 immer 적용
+    immer(
+      combine({ count: 0 }, (set, get) => ({
+        actions: {
+          increment: () => {
+            get(); // 자동타입추론
+            // 함수형태 지원 (store 대신에 state 작성이 관례)
+            set(state => ({ count: state.count + 1 }));
+          },
+          decrement: () => {
+            set(state => ({ count: state.count - 1 }));
+          },
+        },
+      }))
+    )
+  )
+);
+```
+
+### 4.2. 활용단계
+
+- 단계 1.
+
+```ts
+useCountStore.subscribe();
+```
+
+- 단계 2.
+
+```ts
+useCountStore.subscribe(
+  스토어에 어떠한 값을 구동할지 결정하는 Selector 함수 정의,
+  콜백함수(값이 변경될 때마다 실행될 함수) 작성
+);
+```
+
+- 단계 3.
+
+```ts
+useCountStore.subscribe(
+  ()=> 리턴객체,
+  콜백함수(값이 변경될 때마다 실행될 함수) 작성
+);
+```
+
+- 단계 4.
+
+```ts
+useCountStore.subscribe(
+  (store) => store.count,
+  콜백함수(값이 변경될 때마다 실행될 함수) 작성
+);
+```
+
+- 단계 5.
+
+```ts
+useCountStore.subscribe(
+  store => store.count,
+  (새로운값, 기존의 값) => {
+     하고 싶은일
+  }
+);
+```
+
+- 단계 6.
+
+```ts
+useCountStore.subscribe(
+  store => store.count,
+  (count, previousSelectedState) => {
+    console.log('새로운 값', count);
+  }
+);
+```
+
+- 단계 7. 최종 코드
+
+```ts
+useCountStore.subscribe(
+  store => store.count,
+  (count, prevCount) => {
+    console.log(count, prevCount);
+    // 현재 스토어의 값을 읽어오기
+    const store = useCountStore.getState();
+    console.log(store);
+    // 아래 코드는 store의 count 를 계속 업데이트 하므로 무한 루프가 돕니다.
+    // 현재 스토어의 값을 업데이트 하기
+    // useCountStore.setState({ count: 100 });
+    // 현재 스토어의 값을 업데이트 하기
+    // useCountStore.setState(state => {
+    //   state.count = 100;
+    // });
+  }
+);
+```
+
+### 4.3. 최종 코드
+
+```ts
+import { create } from 'zustand';
+import { combine, subscribeWithSelector } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+// create 함수는 hook 을 리턴한다.
+const useCountStore = create(
+  subscribeWithSelector(
+    // 불변성 유지 immer 적용
+    immer(
+      combine({ count: 0 }, (set, get) => ({
+        actions: {
+          increment: () => {
+            get(); // 자동타입추론
+            // 함수형태 지원 (store 대신에 state 작성이 관례)
+            set(state => ({ count: state.count + 1 }));
+          },
+          decrement: () => {
+            set(state => ({ count: state.count - 1 }));
+          },
+        },
+      }))
+    )
+  )
+);
+
+useCountStore.subscribe(
+  store => store.count,
+  (count, prevCount) => {
+    console.log(count, prevCount);
+    // 현재 스토어의 값을 읽어오기
+    const store = useCountStore.getState();
+    console.log(store);
+    // 아래 코드는 store의 count 를 계속 업데이트 하므로 무한 루프가 돕니다.
+    // 현재 스토어의 값을 업데이트 하기
+    // useCountStore.setState({ count: 100 });
+    // 현재 스토어의 값을 업데이트 하기
+    // useCountStore.setState(state => {
+    //   state.count = 100;
+    // });
+  }
+);
+
+// 전용 훅들
+export const useCount = () => {
+  const count = useCountStore(store => store.count);
+  return count;
+};
+export const useIncrement = () => {
+  const increment = useCountStore(store => store.actions.increment);
+  return increment;
+};
+export const useDecrement = () => {
+  const decrement = useCountStore(store => store.actions.decrement);
+  return decrement;
+};
+```
+
+## 5. persist
+
+- 현재 store 에 모든 내용을 웹브라우저에 보관
+- 쿠키에 보관 가능 : 일정 기간 동안 보관가능함.
+- 세션에 보관 가능 : 웹브라우저 종료시 사라짐
+- 로컬스토리지에 보관 가능 : 영원히 보관
+- 주의사항: 현실적으로 store 는 state 와 action 으로 구성됨
+
+### 5.1 . 적용단계
+
+- 단계 1.
+
+```ts
+import { combine, subscribeWithSelector, persist } from 'zustand/middleware';
+```
+
+- 단계 2.
+
+```ts
+const useCountStore = create();
+```
+
+- 단계 3.
+
+```ts
+const useCountStore = create(persist());
+```
+
+- 단계 4.
+
+```ts
+const useCountStore = create(persist(subscribeWithSelector 함수등, {옵션객체}));
+```
+
+- 단계 5.
+
+```ts
+const useCountStore = create(
+  persist(
+    subscribeWithSelector(
+      // 불변성 유지 immer 적용
+      immer(
+        combine({ count: 0 }, (set, get) => ({
+          actions: {
+            increment: () => {
+              get(); // 자동타입추론
+              // 함수형태 지원 (store 대신에 state 작성이 관례)
+              set(state => ({ count: state.count + 1 }));
+            },
+            decrement: () => {
+              set(state => ({ count: state.count - 1 }));
+            },
+          },
+        }))
+      )
+    ),
+    {
+      옵션객체,
+    }
+  )
+);
+```
+
+- 단계 6.
+
+```ts
+const useCountStore = create(
+  persist(
+    subscribeWithSelector(
+      // 불변성 유지 immer 적용
+      immer(
+        combine({ count: 0 }, (set, get) => ({
+          actions: {
+            increment: () => {
+              get(); // 자동타입추론
+              // 함수형태 지원 (store 대신에 state 작성이 관례)
+              set(state => ({ count: state.count + 1 }));
+            },
+            decrement: () => {
+              set(state => ({ count: state.count - 1 }));
+            },
+          },
+        }))
+      )
+    ),
+    {
+      // 기본적으로 로컬스토리지에 저장됨
+      name: 'countStore',
+    }
+  )
+);
+```
+
+### 5.2. 저장된 내용 확인하기
+
+- F12 개발자 모드 > Aplication 탭 활성
+- `Local Storag` 탭 내용 확인
+- 문제점 확인
+
+```txt
+{"state":{"count":1,"actions":{}},"version":0}
+```
+
+- 위의 결과로 actions 의 함수가 모두 사라짐. 액션 기능 삭제
+- `불러와서 사용하면 문제 발생함.`
+
+### 5.3. 옵션으로 개선하기
+
+```ts
+ {
+      // 기본적으로 로컬스토리지에 저장됨
+      name: 'countStore',
+      // 보관할 대상을 지정함.
+      partialize: state => ({ count: state.count }),
+    }
+```
+
+- 보관된 데이터
+
+```txt
+{"state":{"count":-2},"version":0}
+```
+
+### 5.4. 저장소 변경하기
+
+- 로컬스토리지가 기본 저장소
+
+```ts
+import {
+  combine,
+  subscribeWithSelector,
+  persist,
+  createJSONStorage,
+} from 'zustand/middleware';
+```
+
+```ts
+ {
+      // 기본적으로 로컬스토리지에 저장됨
+      name: 'countStore',
+      // 보관할 대상을 지정함.
+      partialize: state => ({ count: state.count }),
+      storage: createJSONStorage(() => sessionStorage),
+    }
+```
+
+## 6. devtools
+
+- 개발중에 웹브라우저에서 디버깅 용도
+
+### 6.1 적용 단계
+
+- 단계 1.
+
+```ts
+import {
+  combine,
+  subscribeWithSelector,
+  persist,
+  createJSONStorage,
+  devtools,
+} from 'zustand/middleware';
+```
+
+- 단계 2.
+
+```ts
+const useCountStore = create();
+```
+
+- 단계 3.
+
+```ts
+const useCountStore = create(devtools());
+```
+
+- 단계 4.
+
+```ts
+const useCountStore = create(devtools(persist 등,{옵션객체}));
+```
+
+- 단계 5.
+
+```ts
+const useCountStore = create(
+  devtools(
+    persist(
+      subscribeWithSelector(
+        // 불변성 유지 immer 적용
+        immer(
+          combine({ count: 0 }, (set, get) => ({
+            actions: {
+              increment: () => {
+                get(); // 자동타입추론
+                // 함수형태 지원 (store 대신에 state 작성이 관례)
+                set(state => ({ count: state.count + 1 }));
+              },
+              decrement: () => {
+                set(state => ({ count: state.count - 1 }));
+              },
+            },
+          }))
+        )
+      ),
+      {
+        // 기본적으로 로컬스토리지에 저장됨
+        name: 'countStore',
+        // 보관할 대상을 지정함.
+        partialize: state => ({ count: state.count }),
+        storage: createJSONStorage(() => sessionStorage),
+      }
+    ),
+    { 옵션객체 }
+  )
+);
+```
+
+- 단계 6. 옵션객체
+
+```ts
+// 디버깅 구분용
+{
+  name: 'countStore';
+}
+```
+
+### 6.2. Redux Devtools 설치
+
+- https://chromewebstore.google.com/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd?hl=ko&pli=1
+
+### 6.3. 최종 코드
+
+```ts
+import { create } from 'zustand';
+import {
+  combine,
+  subscribeWithSelector,
+  persist,
+  createJSONStorage,
+  devtools,
+} from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+// create 함수는 hook 을 리턴한다.
+const useCountStore = create(
+  devtools(
+    persist(
+      subscribeWithSelector(
+        // 불변성 유지 immer 적용
+        immer(
+          combine({ count: 0 }, (set, get) => ({
+            actions: {
+              increment: () => {
+                get(); // 자동타입추론
+                // 함수형태 지원 (store 대신에 state 작성이 관례)
+                set(state => ({ count: state.count + 1 }));
+              },
+              decrement: () => {
+                set(state => ({ count: state.count - 1 }));
+              },
+            },
+          }))
+        )
+      ),
+      {
+        // 기본적으로 로컬스토리지에 저장됨
+        name: 'countStore',
+        // 보관할 대상을 지정함.
+        partialize: state => ({ count: state.count }),
+        storage: createJSONStorage(() => sessionStorage),
+      }
+    ),
+    // 디버깅 구분용
+    { name: 'countStore' }
+  )
+);
+
+useCountStore.subscribe(
+  store => store.count,
+  (count, prevCount) => {
+    console.log(count, prevCount);
+    // 현재 스토어의 값을 읽어오기
+    const store = useCountStore.getState();
+    console.log(store);
+    // 아래코드는 store의 count를 계속 업데이트 하므로   무한 루프가 돈다.
+    // 현재 스토어의 값을 업데이트 하기
+    // useCountStore.setState({ count: 100 });
+    // 현재 스토어의 값을 업데이트 하기
+    // useCountStore.setState(state => {
+    //   state.count = 100;
+    // });
+  }
+);
+// 전용 훅들
+export const useCount = () => {
+  const count = useCountStore(store => store.count);
+  return count;
+};
+export const useIncrement = () => {
+  const increment = useCountStore(store => store.actions.increment);
+  return increment;
+};
+export const useDecrement = () => {
+  const decrement = useCountStore(store => store.actions.decrement);
+  return decrement;
+};
 ```
