@@ -1,728 +1,487 @@
-# Zustand 미들웨어
+# Zustand 와 Supabase Auth
 
-- 특정 로직에 `중간에 관여하여 추가작업` 후 다음 로직 실행하는 단계
-- 회원가입 로직에 순차적 `중간단계에 로그,중복확인 등 처리`하고 결과 리턴
-- 5개의 미들웨어에 대한 이해 필요.
-- store 생성시 `중간단계에서 미들웨어 작동 후` 결과 리턴
-- `미들웨어 적용 순서가 엄청 중요함`
+## 1. 참조
 
-## 1. MiddleWare 종류
-
-- combine : Store 의 `State 타입을 자동 추론`(Action 타입은 별도)
-- immer : Store 의 State 가 객체, 배열, 중첩객체, 중첩배열 등 복잡한 경우 활용
-- subscribeWithSelector : Store 내부의 특정 값 변화시 이벤트 핸들러 호출
-- persist : Store 의 값을 모두 로컬 또는 세션 등의 Storage 에 보관 옵션
-- devtools : Store 의 값을 개발자 도구에서 확인하며 디버그 진행시 활용.
-
-## 2. combine
-
-- `/src/stores/count.ts`
-- `결합한다`는 의미
-- create 로 Store 생성시 `state`와 `actions`를 한 개의 객체로 만들지 않겠다.
-- `state` 와 `actions` 를 분리해서 작성하고, 결합시키는 방식으로 Store 정의
-- `state` 의 타입을 자동추론 해주어서 편리하다.
-
-### 2.1. 작성순서
-
-- 단계 1.
-
-```ts
-import { combine } from 'zustand/middleware';
-import { create } from 'zustand';
-
-create(combine(스토어에 포함될 State 객체, 콜백함수));
-```
-
-- 단계 2.
-
-```ts
-create(combine({ count: 0 }, 콜백함수));
-```
-
-- 단계 3.
-
-```ts
-create(combine({ count: 0 }, () => {}));
-```
-
-- 단계 4.
-
-```ts
-create(combine({ count: 0 }, (set, get) => 리턴객체));
-```
-
-- 단계 5.
-- 화살표 함수 때문에 리턴객체는 `({리턴객체})` 필수
-
-```ts
-create(combine({ count: 0 }, (set, get) => ({ 리턴객체 })));
-```
-
-- 단계 6.
-
-```ts
-create(combine({ count: 0 }, (set, get) => ({ 키명: 기능값 })));
-```
-
-```ts
-create(
-  combine({ count: 0 }, (set, get) => ({
-    // 키명: 기능
-    actions: {
-      // action : state 변경
-      increment: () => {
-        // 함수형태 지원
-        set(store => ({ count: store.count + 1 }));
-      },
-      decrement: () => {
-        set(store => ({ count: store.count - 1 }));
-      },
-    },
-  }))
-);
-```
-
-### 2.2. combine 의 특징
-
-- combine(스테이트 객체, 콜백함수)
-- `스테이트 객체의 타입을 자동 추론`해 준다.
-- 전체 Store 의 타입을 추론하는건 아니다.
-- 정확히 개발자가 명시해 주기 위해서 action 은 아래처럼 작성
-
-```ts
-create(
-  combine({ count: 0 }, (set, get) => ({
-    actions: {
-      // action : state 변경
-      increment: () => {
-        get(); // 자동타입추론
-        // 함수형태 지원 (store 대신에 state 작성이 관례)
-        set(state => ({ count: state.count + 1 }));
-      },
-      decrement: () => {
-        set(state => ({ count: state.count - 1 }));
-      },
-    },
-  }))
-);
-```
-
-### 2.3. 최종 코드
-
-```ts
-import { create } from 'zustand';
-import { combine } from 'zustand/middleware';
-
-// create 함수는 hook 을 리턴한다.
-const useCountStore = create(
-  combine({ count: 0 }, (set, get) => ({
-    actions: {
-      increment: () => {
-        get(); // 자동타입추론
-        // 함수형태 지원 (store 대신에 state 작성이 관례)
-        set(state => ({ count: state.count + 1 }));
-      },
-      decrement: () => {
-        set(state => ({ count: state.count - 1 }));
-      },
-    },
-  }))
-);
-
-// 전용 훅들
-export const useCount = () => {
-  const count = useCountStore(store => store.count);
-  return count;
-};
-export const useIncrement = () => {
-  const increment = useCountStore(store => store.actions.increment);
-  return increment;
-};
-export const useDecrement = () => {
-  const decrement = useCountStore(store => store.actions.decrement);
-  return decrement;
-};
-```
-
-## 3. immer
-
-- state 객체를 편리하게 `불변성 관리`해주는 도구
-- 이전의 값과 새로운 값이 다르면 리렌더링 한다.
-- 이전의 객체와 새로운 객체가 다르면 리렌더링 한다.
-
-### 3.1. immer 설치
+- Supbase 계정이 2개라서 오류라면 아래부터 진행
+- supabase 계정에 따라서 type 생성 오류발생함
+- supabase 로그인 이후 진행
 
 ```bash
-npm i immer
+npx supabase login
 ```
 
-### 3.2. import 해주기
+## 2. `React` 와 `Next.js` 는 다르다.
 
-```ts
-import { immer } from 'zustand/middleware/immer';
-```
+- Supabase 는 `React 라면 localstorage 에 로그인 정보` 보관
+- localstorage 는 웹브라우저 종료해도 남아있음
+- localstorage 는 새로고침해도 남아있음
+- localstorage 는 유효기간이 없다.
 
-### 3.3. 적용은 순서가 중요하다.
+- Supabase 는 `Next.js 라면 cookie 에 로그인 정보` 보관
+- cookie 는 웹브라우저 종료해도 남아있음
+- cookie 는 새로고침해도 남아있음
+- cookie 는 일정 기간만큼 보관(유효기간)
 
-- 1 단계
+## 3. zustand 로 관리하기
 
-```ts
-const useCountStore = create();
-```
+### 3.1. stores 폴더 만들기
 
-- 2 단계
+- `/src/stores 폴더` 생성
+- `/src/stores/session.ts 파일` 생성
 
-```ts
-const useCountStore = create(immer());
-```
-
-- 3 단계
-
-```ts
-const useCountStore = create(immer(combine()));
-```
-
-### 3.4. 적용 코드
+- 단계 1.
 
 ```ts
 import { create } from 'zustand';
-import { combine } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-// create 함수는 hook 을 리턴한다.
 
-const useCountStore = create(
-  // 불변성 유지 immer 적용
-  immer(
-    combine({ count: 0 }, (set, get) => ({
+create();
+```
+
+- 단계 2.
+
+```ts
+import { create } from 'zustand';
+import { combine } from 'zustand/middleware/combine';
+
+create(combine());
+```
+
+- 단계 3.
+
+```ts
+import { create } from 'zustand';
+import { combine } from 'zustand/middleware/combine';
+
+create(combine(state 객체, 액션함수));
+```
+
+- 단계 4.
+
+```ts
+// 보관할 state 의 객체 초기값
+const initialState = {
+  isLoading: false,
+  session: null,
+};
+create(combine(initialState, 액션함수));
+```
+
+- 단계 5.
+
+```ts
+import { create } from 'zustand';
+import { combine } from 'zustand/middleware/combine';
+
+// Supabase 의 인증 타입을 정의함
+import type { Session } from '@supabase/supabase-js';
+
+type State = {
+  isLoading: boolean;
+  session: null | Session;
+};
+
+// 보관할 state 의 객체 초기값
+const initialState = {
+  isLoading: false,
+  session: null,
+} as State;
+create(combine(initialState, 액션함수));
+```
+
+- 단계 6.
+
+```ts
+import { create } from 'zustand';
+import { combine } from 'zustand/middleware/combine';
+
+// Supabase 의 인증 타입을 정의함
+import type { Session } from '@supabase/supabase-js';
+
+type State = {
+  isLoading: boolean;
+  session: null | Session;
+};
+
+// 보관할 state 의 객체 초기값
+const initialState = {
+  isLoading: false,
+  session: null,
+} as State;
+create(combine(initialState, () => ({ 액션객체 })));
+```
+
+- 단계 7.
+
+```ts
+import { create } from 'zustand';
+import { combine } from 'zustand/middleware/combine';
+
+// Supabase 의 인증 타입을 정의함
+import type { Session } from '@supabase/supabase-js';
+
+type State = {
+  isLoading: boolean;
+  session: null | Session;
+};
+
+// 보관할 state 의 객체 초기값
+const initialState = {
+  isLoading: false,
+  session: null,
+} as State;
+create(
+  combine(initialState, () => ({
+    키명: () => {
+      키명: 기능;
+    },
+  }))
+);
+```
+
+- 단계 8.
+
+```ts
+create(combine(initialState, () => ({ actions: {} })));
+```
+
+- 단계 9.
+
+```ts
+// set 은 state 값 설정
+// get 은 state 값 읽기
+create(combine(initialState, (set, get) => ({ actions: {} })));
+```
+
+- 단계 10.
+
+```ts
+// set 은 state 값 설정
+// get 은 state 값 읽기
+create(
+  combine(initialState, (set, get) => ({
+    actions: {
+      setSession: () => {
+        // 하고싶은일
+      },
+    },
+  }))
+);
+```
+
+- 단계 11.
+
+```ts
+// set 은 state 값 설정
+// get 은 state 값 읽기
+create(
+  combine(initialState, (set, get) => ({
+    actions: {
+      setSession: (session: Session | null) => {
+        // 하고싶은일
+        set({ isLoading: true, session });
+      },
+    },
+  }))
+);
+```
+
+### 3.2. devtools 로 개발을 편하게 처리
+
+- 단계 1.
+
+```ts
+import { combine, devtools } from 'zustand/middleware';
+```
+
+- 단계 2.
+
+```ts
+create(devtools());
+```
+
+- 단계 3.
+
+```ts
+create(devtools(combine 함수, { name: 'sessionStore' }));
+```
+
+- 단계 4.
+
+```ts
+create(
+  devtools(
+    combine(initialState, (set, get) => ({
       actions: {
-        increment: () => {
-          get(); // 자동타입추론
-          // 함수형태 지원 (store 대신에 state 작성이 관례)
-          set(state => ({ count: state.count + 1 }));
-        },
-        decrement: () => {
-          set(state => ({ count: state.count - 1 }));
+        setSession: (session: Session | null) => {
+          // 하고싶은일
+          set({ isLoading: true, session });
         },
       },
-    }))
+    })),
+    { name: 'sessionStore' }
   )
 );
-
-// 전용 훅들
-export const useCount = () => {
-  const count = useCountStore(store => store.count);
-  return count;
-};
-export const useIncrement = () => {
-  const increment = useCountStore(store => store.actions.increment);
-  return increment;
-};
-export const useDecrement = () => {
-  const decrement = useCountStore(store => store.actions.decrement);
-  return decrement;
-};
 ```
 
-## 4. subscribeWithSelector
-
-- subscribe: 구독
-- Selector: Selector 함수
-- 특정 값이 변경이 될때 추가로 함수도 같이 실행한다.
-- `state` 가 변하면 함수도 실행된다.
-- 예) 로그인을 하면 쿠키, 세션 굽고, 로그아웃 하면 쿠키, 세션 정보 지우고
-
-### 4.1. 생성단계
+### 3.3. 커스텀 훅으로 뽑아주기
 
 - 단계 1.
 
 ```ts
-import { combine, subscribeWithSelector } from 'zustand/middleware';
-```
-
-- 단계 2.
-
-```ts
-const useCountStore = create(subscribeWithSelector());
-```
-
-- 단계 3.
-
-```ts
-const useCountStore = create(subscribeWithSelector(immer코드));
-```
-
-- 단계 4.
-
-```ts
-const useCountStore = create(subscribeWithSelector(immer코드));
-```
-
-- 단계 5.
-
-```ts
-// create 함수는 hook 을 리턴한다.
-const useCountStore = create(
-  subscribeWithSelector(
-    // 불변성 유지 immer 적용
-    immer(
-      combine({ count: 0 }, (set, get) => ({
-        actions: {
-          increment: () => {
-            get(); // 자동타입추론
-            // 함수형태 지원 (store 대신에 state 작성이 관례)
-            set(state => ({ count: state.count + 1 }));
-          },
-          decrement: () => {
-            set(state => ({ count: state.count - 1 }));
-          },
-        },
-      }))
-    )
-  )
-);
-```
-
-### 4.2. 활용단계
-
-- 단계 1.
-
-```ts
-useCountStore.subscribe();
-```
-
-- 단계 2.
-
-```ts
-useCountStore.subscribe(
-  스토어에 어떠한 값을 구동할지 결정하는 Selector 함수 정의,
-  콜백함수(값이 변경될 때마다 실행될 함수) 작성
-);
-```
-
-- 단계 3.
-
-```ts
-useCountStore.subscribe(
-  ()=> 리턴객체,
-  콜백함수(값이 변경될 때마다 실행될 함수) 작성
-);
-```
-
-- 단계 4.
-
-```ts
-useCountStore.subscribe(
-  (store) => store.count,
-  콜백함수(값이 변경될 때마다 실행될 함수) 작성
-);
-```
-
-- 단계 5.
-
-```ts
-useCountStore.subscribe(
-  store => store.count,
-  (새로운값, 기존의 값) => {
-     하고 싶은일
-  }
-);
-```
-
-- 단계 6.
-
-```ts
-useCountStore.subscribe(
-  store => store.count,
-  (count, previousSelectedState) => {
-    console.log('새로운 값', count);
-  }
-);
-```
-
-- 단계 7. 최종 코드
-
-```ts
-useCountStore.subscribe(
-  store => store.count,
-  (count, prevCount) => {
-    console.log(count, prevCount);
-    // 현재 스토어의 값을 읽어오기
-    const store = useCountStore.getState();
-    console.log(store);
-    // 아래 코드는 store의 count 를 계속 업데이트 하므로 무한 루프가 돕니다.
-    // 현재 스토어의 값을 업데이트 하기
-    // useCountStore.setState({ count: 100 });
-    // 현재 스토어의 값을 업데이트 하기
-    // useCountStore.setState(state => {
-    //   state.count = 100;
-    // });
-  }
-);
-```
-
-### 4.3. 최종 코드
-
-```ts
-import { create } from 'zustand';
-import { combine, subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-// create 함수는 hook 을 리턴한다.
-const useCountStore = create(
-  subscribeWithSelector(
-    // 불변성 유지 immer 적용
-    immer(
-      combine({ count: 0 }, (set, get) => ({
-        actions: {
-          increment: () => {
-            get(); // 자동타입추론
-            // 함수형태 지원 (store 대신에 state 작성이 관례)
-            set(state => ({ count: state.count + 1 }));
-          },
-          decrement: () => {
-            set(state => ({ count: state.count - 1 }));
-          },
-        },
-      }))
-    )
-  )
-);
-
-useCountStore.subscribe(
-  store => store.count,
-  (count, prevCount) => {
-    console.log(count, prevCount);
-    // 현재 스토어의 값을 읽어오기
-    const store = useCountStore.getState();
-    console.log(store);
-    // 아래 코드는 store의 count 를 계속 업데이트 하므로 무한 루프가 돕니다.
-    // 현재 스토어의 값을 업데이트 하기
-    // useCountStore.setState({ count: 100 });
-    // 현재 스토어의 값을 업데이트 하기
-    // useCountStore.setState(state => {
-    //   state.count = 100;
-    // });
-  }
-);
-
-// 전용 훅들
-export const useCount = () => {
-  const count = useCountStore(store => store.count);
-  return count;
-};
-export const useIncrement = () => {
-  const increment = useCountStore(store => store.actions.increment);
-  return increment;
-};
-export const useDecrement = () => {
-  const decrement = useCountStore(store => store.actions.decrement);
-  return decrement;
-};
-```
-
-## 5. persist
-
-- 현재 store 에 모든 내용을 웹브라우저에 보관
-- 쿠키에 보관 가능 : 일정 기간 동안 보관가능함.
-- 세션에 보관 가능 : 웹브라우저 종료시 사라짐
-- 로컬스토리지에 보관 가능 : 영원히 보관
-- 주의사항: 현실적으로 store 는 state 와 action 으로 구성됨
-
-### 5.1 . 적용단계
-
-- 단계 1.
-
-```ts
-import { combine, subscribeWithSelector, persist } from 'zustand/middleware';
-```
-
-- 단계 2.
-
-```ts
-const useCountStore = create();
-```
-
-- 단계 3.
-
-```ts
-const useCountStore = create(persist());
-```
-
-- 단계 4.
-
-```ts
-const useCountStore = create(persist(subscribeWithSelector 함수등, {옵션객체}));
-```
-
-- 단계 5.
-
-```ts
-const useCountStore = create(
-  persist(
-    subscribeWithSelector(
-      // 불변성 유지 immer 적용
-      immer(
-        combine({ count: 0 }, (set, get) => ({
-          actions: {
-            increment: () => {
-              get(); // 자동타입추론
-              // 함수형태 지원 (store 대신에 state 작성이 관례)
-              set(state => ({ count: state.count + 1 }));
-            },
-            decrement: () => {
-              set(state => ({ count: state.count - 1 }));
-            },
-          },
-        }))
-      )
-    ),
-    {
-      옵션객체,
-    }
-  )
-);
-```
-
-- 단계 6.
-
-```ts
-const useCountStore = create(
-  persist(
-    subscribeWithSelector(
-      // 불변성 유지 immer 적용
-      immer(
-        combine({ count: 0 }, (set, get) => ({
-          actions: {
-            increment: () => {
-              get(); // 자동타입추론
-              // 함수형태 지원 (store 대신에 state 작성이 관례)
-              set(state => ({ count: state.count + 1 }));
-            },
-            decrement: () => {
-              set(state => ({ count: state.count - 1 }));
-            },
-          },
-        }))
-      )
-    ),
-    {
-      // 기본적으로 로컬스토리지에 저장됨
-      name: 'countStore',
-    }
-  )
-);
-```
-
-### 5.2. 저장된 내용 확인하기
-
-- F12 개발자 모드 > Aplication 탭 활성
-- `Local Storag` 탭 내용 확인
-- 문제점 확인
-
-```txt
-{"state":{"count":1,"actions":{}},"version":0}
-```
-
-- 위의 결과로 actions 의 함수가 모두 사라짐. 액션 기능 삭제
-- `불러와서 사용하면 문제 발생함.`
-
-### 5.3. 옵션으로 개선하기
-
-```ts
- {
-      // 기본적으로 로컬스토리지에 저장됨
-      name: 'countStore',
-      // 보관할 대상을 지정함.
-      partialize: state => ({ count: state.count }),
-    }
-```
-
-- 보관된 데이터
-
-```txt
-{"state":{"count":-2},"version":0}
-```
-
-### 5.4. 저장소 변경하기
-
-- 로컬스토리지가 기본 저장소
-
-```ts
-import {
-  combine,
-  subscribeWithSelector,
-  persist,
-  createJSONStorage,
-} from 'zustand/middleware';
-```
-
-```ts
- {
-      // 기본적으로 로컬스토리지에 저장됨
-      name: 'countStore',
-      // 보관할 대상을 지정함.
-      partialize: state => ({ count: state.count }),
-      storage: createJSONStorage(() => sessionStorage),
-    }
-```
-
-## 6. devtools
-
-- 개발중에 웹브라우저에서 디버깅 용도
-
-### 6.1 적용 단계
-
-- 단계 1.
-
-```ts
-import {
-  combine,
-  subscribeWithSelector,
-  persist,
-  createJSONStorage,
-  devtools,
-} from 'zustand/middleware';
-```
-
-- 단계 2.
-
-```ts
-const useCountStore = create();
-```
-
-- 단계 3.
-
-```ts
-const useCountStore = create(devtools());
-```
-
-- 단계 4.
-
-```ts
-const useCountStore = create(devtools(persist 등,{옵션객체}));
-```
-
-- 단계 5.
-
-```ts
-const useCountStore = create(
+const useSessionStore = create(
   devtools(
-    persist(
-      subscribeWithSelector(
-        // 불변성 유지 immer 적용
-        immer(
-          combine({ count: 0 }, (set, get) => ({
-            actions: {
-              increment: () => {
-                get(); // 자동타입추론
-                // 함수형태 지원 (store 대신에 state 작성이 관례)
-                set(state => ({ count: state.count + 1 }));
-              },
-              decrement: () => {
-                set(state => ({ count: state.count - 1 }));
-              },
-            },
-          }))
-        )
-      ),
-      {
-        // 기본적으로 로컬스토리지에 저장됨
-        name: 'countStore',
-        // 보관할 대상을 지정함.
-        partialize: state => ({ count: state.count }),
-        storage: createJSONStorage(() => sessionStorage),
-      }
-    ),
-    { 옵션객체 }
+    combine(initialState, (set, get) => ({
+      actions: {
+        setSession: (session: Session | null) => {
+          // 하고싶은일
+          set({ isLoading: true, session });
+        },
+      },
+    })),
+    { name: 'sessionStore' }
   )
 );
 ```
 
-- 단계 6. 옵션객체
+- Session 정보만 추출하는 커스텀 훅
 
 ```ts
-// 디버깅 구분용
-{
-  name: 'countStore';
+// session 정보
+export const useSession = () => {
+  // Selector 함수는 Store 에서 원하는 것을 선택해서 리턴한다.
+  const session = useSessionStore(store => store.session);
+  return session;
+};
+```
+
+- loading 정보만 추출하는 커스텀 훅
+
+```ts
+// loading 정보
+export const useSessionLoaded = () => {
+  // Selector 함수는 Store 에서 원하는 것을 선택해서 리턴한다.
+  const isSessionLoaded = useSessionStore(store => store.isLoading);
+  return isSessionLoaded;
+};
+```
+
+- setSession 액션만 추출하는 커스텀 훅
+
+```ts
+// session 보관 액션
+export const useSetSession = () => {
+  // Selector 함수는 Store 에서 원하는 것을 선택해서 리턴한다.
+  const setSession = useSessionStore(store => store.actions.setSession);
+  return setSession;
+};
+```
+
+### 3.4. 왜 persist 는 안쓰지?
+
+- Supabase 인증은 자동으로 cookie 에 보관됨.
+- local Storage 에 보관하지 않아도 웹브라우저에 가지고 있다.
+
+## 4. 활용하기
+
+### 4.1. 전역에서 활용하기 위해서 /src/app/layout.tsx
+
+### 4.2. "use client" 를 layout.tsx 에 적용은 곤란함
+
+### 4.3. 별도의 컴포넌트를 만들어서 layout.tsx 에 배치 권장
+
+- `/src/components/providers 폴더` 생성
+- `/src/components/providers/SessionProvider.tsx 파일` 생성
+
+- 단계 1.
+
+```tsx
+export default function SessionProvider() {
+  return <div>세션관리 컴포넌트</div>;
 }
 ```
 
-### 6.2. Redux Devtools 설치
+- 단계 2.
 
-- https://chromewebstore.google.com/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd?hl=ko&pli=1
+```tsx
+interface SessionProviderProps {
+  children: React.ReactNode;
+}
+export default function SessionProvider({ children }: SessionProviderProps) {
+  return <div>{children}</div>;
+}
+```
 
-### 6.3. 최종 코드
+- 단계 3.
 
-```ts
-import { create } from 'zustand';
-import {
-  combine,
-  subscribeWithSelector,
-  persist,
-  createJSONStorage,
-  devtools,
-} from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-// create 함수는 hook 을 리턴한다.
-const useCountStore = create(
-  devtools(
-    persist(
-      subscribeWithSelector(
-        // 불변성 유지 immer 적용
-        immer(
-          combine({ count: 0 }, (set, get) => ({
-            actions: {
-              increment: () => {
-                get(); // 자동타입추론
-                // 함수형태 지원 (store 대신에 state 작성이 관례)
-                set(state => ({ count: state.count + 1 }));
-              },
-              decrement: () => {
-                set(state => ({ count: state.count - 1 }));
-              },
-            },
-          }))
-        )
-      ),
-      {
-        // 기본적으로 로컬스토리지에 저장됨
-        name: 'countStore',
-        // 보관할 대상을 지정함.
-        partialize: state => ({ count: state.count }),
-        storage: createJSONStorage(() => sessionStorage),
-      }
-    ),
-    // 디버깅 구분용
-    { name: 'countStore' }
-  )
-);
+```tsx
+'use client';
 
-useCountStore.subscribe(
-  store => store.count,
-  (count, prevCount) => {
-    console.log(count, prevCount);
-    // 현재 스토어의 값을 읽어오기
-    const store = useCountStore.getState();
-    console.log(store);
-    // 아래코드는 store의 count를 계속 업데이트 하므로   무한 루프가 돈다.
-    // 현재 스토어의 값을 업데이트 하기
-    // useCountStore.setState({ count: 100 });
-    // 현재 스토어의 값을 업데이트 하기
-    // useCountStore.setState(state => {
-    //   state.count = 100;
-    // });
+import { useSessionLoaded, useSetSession } from '@/stores/session';
+
+interface SessionProviderProps {
+  children: React.ReactNode;
+}
+export default function SessionProvider({ children }: SessionProviderProps) {
+  const setSession = useSetSession();
+  const isSessionLoaded = useSessionLoaded();
+  return <div>{children}</div>;
+}
+```
+
+- 단계 4.
+
+```tsx
+'use client';
+
+import supabase from '@/lib/supabase/client';
+import { useSessionLoaded, useSetSession } from '@/stores/session';
+import { useEffect } from 'react';
+
+interface SessionProviderProps {
+  children: React.ReactNode;
+}
+export default function SessionProvider({ children }: SessionProviderProps) {
+  const setSession = useSetSession();
+  const isSessionLoaded = useSessionLoaded();
+
+  useEffect(() => {
+    // Supabase 의 인증 상태가 변함을 체크함.
+    supabase.auth.onAuthStateChange((event, session) => {
+      // zustand 에 보관
+      setSession(session);
+    });
+  }, []);
+
+  return <div>{children}</div>;
+}
+```
+
+- 단계 5.
+
+```tsx
+'use client';
+
+import supabase from '@/lib/supabase/client';
+import { useSessionLoaded, useSetSession } from '@/stores/session';
+import { useEffect } from 'react';
+
+interface SessionProviderProps {
+  children: React.ReactNode;
+}
+export default function SessionProvider({ children }: SessionProviderProps) {
+  const setSession = useSetSession();
+  const isSessionLoaded = useSessionLoaded();
+
+  useEffect(() => {
+    // Supabase 의 인증 상태가 변함을 체크함.
+    supabase.auth.onAuthStateChange((event, session) => {
+      // zustand 에 보관
+      setSession(session);
+    });
+  }, []);
+
+  // 아직 세션이 없다면
+  if (!isSessionLoaded) {
+    return <div>로딩중 ...</div>;
   }
-);
-// 전용 훅들
-export const useCount = () => {
-  const count = useCountStore(store => store.count);
-  return count;
+
+  return <div>{children}</div>;
+}
+```
+
+### 4.4. 배치해보기
+
+- `/src/app/layout.tsx` 업데이트
+
+```tsx
+<QueryProvider>
+  <SessionProvider>
+    <header className='h-15 border-b'>
+      <div className='m-auto flex h-full w-full max-w-175 justify-between px-4'>
+        <Link href={'/'} className='flex items-center gap-2'>
+          <Image src={logo} alt='SNS 서비스 로고' width={40} height={40} />
+          <div className='font-bold'>SNS 서비스</div>
+        </Link>
+        <div className='flex items-center gap-5'>
+          <div className='hover:bg-muted cursor-pointer rounded-full p-2'>
+            <Sun />
+          </div>
+          <Image
+            src={defaultAvatar}
+            alt='아바타'
+            width={24}
+            height={24}
+            className='h-6'
+          />
+        </div>
+      </div>
+    </header>
+    <main className='m-auto w-full max-w-175 flex-1 border-x px-4 py-6'>
+      {children}
+    </main>
+    <footer className='text-muted-foreground border-t py-10 text-center'>
+      @devseastj
+    </footer>
+  </SessionProvider>
+</QueryProvider>
+```
+
+### 4.5. 로딩창 만들기
+
+- `/src/components/GlobalLoading.tsx 파일` 생성
+
+```tsx
+import React from 'react';
+import Image from 'next/image';
+export const GlobalLoading = () => {
+  return (
+    <div className='bg-muted flex h-[100vh] w-[100vw] flex-col items-center justify-center'>
+      <div className='mb-15 flex animate-bounce items-center gap-4'>
+        <Image
+          src={'/assets/logo.png'}
+          alt='SNS'
+          className='w-10'
+          width={40}
+          height={40}
+        />
+        <div className='text-2xl font-bold'>SNS 서비스</div>
+      </div>
+    </div>
+  );
 };
-export const useIncrement = () => {
-  const increment = useCountStore(store => store.actions.increment);
-  return increment;
-};
-export const useDecrement = () => {
-  const decrement = useCountStore(store => store.actions.decrement);
-  return decrement;
-};
+```
+
+- 배치
+- `/src/components/providers/SessionProvider.tsx 파일` 업데이트
+
+```tsx
+'use client';
+
+import supabase from '@/lib/supabase/client';
+import { useSessionLoaded, useSetSession } from '@/stores/session';
+import { useEffect } from 'react';
+import { GlobalLoading } from '../GlobalLoading';
+
+interface SessionProviderProps {
+  children: React.ReactNode;
+}
+export default function SessionProvider({ children }: SessionProviderProps) {
+  const setSession = useSetSession();
+  const isSessionLoaded = useSessionLoaded();
+
+  useEffect(() => {
+    // Supabase 의 인증 상태가 변함을 체크함.
+    supabase.auth.onAuthStateChange((event, session) => {
+      // zustand 에 보관
+      setSession(session);
+    });
+  }, []);
+
+  // 아직 세션이 없다면
+  if (!isSessionLoaded) {
+    return <GlobalLoading />;
+  }
+
+  return <div>{children}</div>;
+}
 ```
