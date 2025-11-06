@@ -124,7 +124,7 @@ export default async function TodoDetailPage({ params }: TodoDetailPage) {
 - 네트워크가 끊겼다가 연결(Reconnect) 되면 `stale` 상태면 Refetching 으로 데이터 호출
 - 옵션으로 refetchInterval 을 초단위로 지정하면 `stale` 상태면 Refetching 으로 데이터 호출
 
-## 6.1. 리패칭 끄기 옵션
+### 6.1. 리패칭 끄기 옵션
 
 ```ts
 import { fetchTodoById } from '@/apis/todo';
@@ -146,7 +146,7 @@ export function useTodoDataById(id: number) {
 
 ### 6.2. staleTime 옵션 이해하기
 
-```tsx
+```ts
 export function useTodoDataById(id: number) {
   return useQuery({
     queryKey: ['todos', id],
