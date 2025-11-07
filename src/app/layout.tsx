@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import QueryProvider from '@/components/providers/QueryProvider';
-import Image from 'next/image';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Sun } from 'lucide-react';
 import ToastProvider from '@/components/providers/ToastProvider';
 import SessionProvider from '@/components/providers/SessionProvider';
@@ -37,9 +37,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className='flex min-h-full flex-col'>
+        <div className='flex min-h-[100vh] flex-col'>
           {/* 컴포넌트 배치 */}
           <ToastProvider />
+
           <QueryProvider>
             <SessionProvider>
               <header className='h-15 border-b'>
@@ -53,13 +54,14 @@ export default function RootLayout({
                     />
                     <div className='font-bold'>SNS 서비스</div>
                   </Link>
+
                   <div className='flex items-center gap-5'>
                     <div className='hover:bg-muted cursor-pointer rounded-full p-2'>
                       <Sun />
                     </div>
                     <Image
                       src={defaultAvatar}
-                      alt='아바타'
+                      alt='기본 아바타'
                       width={24}
                       height={24}
                       className='h-6'
@@ -71,7 +73,7 @@ export default function RootLayout({
                 {children}
               </main>
               <footer className='text-muted-foreground border-t py-10 text-center'>
-                @devseastj
+                @devgeact
               </footer>
             </SessionProvider>
           </QueryProvider>

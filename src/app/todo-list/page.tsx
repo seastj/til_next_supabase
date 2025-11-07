@@ -1,29 +1,30 @@
 'use client';
-import Link from 'next/link';
-import { Todo } from '@/types/todo-type';
-import { Button } from '@/components/ui/button';
+import TodoEditor from '@/components/todo/TodoEditor';
+import TodoItem from '@/components/todo/TodoItem';
+import { useFetchTodos } from '@/hooks/todos/queries/useFetchTodos';
 
-export default function TodoItem({ id, title, completed, userId }: Todo) {
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.checked);
-  };
+export default function TodoListPage() {
+  const { data: todos, isLoading, error } = useFetchTodos();
 
-  const handleDeleteClick = () => {};
+  if (isLoading) return <div>로딩중 ...</div>;
+  if (error) return <div>에러입니다: {error.message}</div>;
+  if (!todos) return <div>데이터가 없습니다.</div>;
 
   return (
-    <div className='flex items-center justify-between border p-2'>
-      <div className='flex gap-5'>
-        <input
-          type={'checkbox'}
-          checked={completed}
-          onChange={handleCheckboxChange}
-        />
-        <Link href={`/todo-detail/${id}`}>{title}</Link>
+    <div className='flex flex-col gap-5 p-5'>
+      <h1 className='text-2xl font-bold'>Todo List</h1>
+      <TodoEditor />
+      <div className='flex flex-col gap-2'>
+        {todos.map(item => (
+          <TodoItem
+            key={item.id}
+            id={item.id}
+            title={item.title}
+            userId={item.userId}
+            completed={item.completed}
+          />
+        ))}
       </div>
-
-      <Button onClick={handleDeleteClick} variant={'destructive'}>
-        삭제
-      </Button>
     </div>
   );
 }

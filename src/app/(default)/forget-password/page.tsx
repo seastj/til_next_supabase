@@ -45,6 +45,7 @@ export default function ForgetPassword() {
       <Input
         value={email}
         onChange={e => setEmail(e.target.value)}
+        disabled={isPending}
         className='py-6'
         type='email'
         placeholder='example@example.com'
@@ -54,7 +55,7 @@ export default function ForgetPassword() {
         disabled={isPending}
         className='w-full'
       >
-        {isPending ? '인증 메일 요청중 ...' : '인증 메일 요청하기'}
+        {isPending ? '인증 메일 요청 중...' : '인증 메일 요청하기'}
       </Button>
     </div>
   );

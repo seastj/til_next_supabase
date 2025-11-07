@@ -8,9 +8,12 @@ export async function createTodo({
 }) {
   const response = await fetch(`서버_URL/api/todos`, {
     method: 'POST',
-    body: JSON.stringify({ title, content }),
+    body: JSON.stringify({ title: title, content: content }),
   });
+
   if (!response.ok) throw new Error('할일 등록에 실패');
+
   const data = await response.json();
+
   return data;
 }

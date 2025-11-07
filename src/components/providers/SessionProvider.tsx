@@ -1,5 +1,4 @@
 'use client';
-
 import supabase from '@/lib/supabase/client';
 import { useSessionLoaded, useSetSession } from '@/stores/session';
 import { useEffect } from 'react';
@@ -13,7 +12,7 @@ export default function SessionProvider({ children }: SessionProviderProps) {
   const isSessionLoaded = useSessionLoaded();
 
   useEffect(() => {
-    // Supabase 의 인증 상태가 변함을 체크함.
+    // Supbase 의 인증의 상태가 변함을 체크함.
     supabase.auth.onAuthStateChange((event, session) => {
       // zustand 에 보관
       setSession(session);
@@ -21,9 +20,7 @@ export default function SessionProvider({ children }: SessionProviderProps) {
   }, []);
 
   // 아직 세션이 없다면
-  if (!isSessionLoaded) {
-    return <GlobalLoading />;
-  }
+  if (!isSessionLoaded) return <GlobalLoading />;
 
   return <div>{children}</div>;
 }

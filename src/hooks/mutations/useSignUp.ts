@@ -7,9 +7,7 @@ export function useSignUp(callback?: UseMutationCallback) {
     mutationFn: signUpWithEmail,
     onError: error => {
       console.error(error.message);
-      if (callback?.onError) {
-        callback.onError(error);
-      }
+      if (callback?.onError) callback.onError(error);
     },
   });
 }

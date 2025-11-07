@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSignInWithGoogle } from '@/hooks/mutations/useSignInWithGoogle';
@@ -13,6 +12,7 @@ import { toast } from 'sonner';
 function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   // 이메일로 로그인
   const { mutate: signInPassword, isPending: isPendingPassword } =
     useSignInWithPassword({
@@ -24,24 +24,25 @@ function SignIn() {
         toast.error(message, { position: 'top-center' });
       },
     });
+
   const handleSignInWithEmail = () => {
     if (!email.trim()) return;
     if (!password.trim()) return;
     // 이메일을 이용해서 로그인 진행
-    signInPassword({ email, password });
+    signInPassword({ email: email, password: password });
   };
 
   // 카카오 로그인
   const { mutate: signInWithKakao, isPending: isPendingKakao } =
     useSignInWithKakao({
       onError: error => {
-        setPassword('');
         // Sonner 로 띄우기
         // 한글 메시지로 교체
         const message = getErrorMessage(error);
         toast.error(message, { position: 'top-center' });
       },
     });
+
   const handleSignInWithKakao = () => {
     signInWithKakao('kakao');
   };
@@ -50,15 +51,15 @@ function SignIn() {
   const { mutate: signInWithGoogle, isPending: isPendingGoogle } =
     useSignInWithGoogle({
       onError: error => {
-        setPassword('');
         // Sonner 로 띄우기
         // 한글 메시지로 교체
         const message = getErrorMessage(error);
         toast.error(message, { position: 'top-center' });
       },
     });
+
   const handleSignInWithGoogle = () => {
-    signInWithGoogle('google');
+    signInWithKakao('google');
   };
 
   return (
@@ -66,18 +67,18 @@ function SignIn() {
       <div className='text-xl font-bold'>로그인</div>
       <div className='flex flex-col gap-2'>
         <Input
-          type='email'
           value={email}
           onChange={e => setEmail(e.target.value)}
           disabled={isPendingPassword}
+          type='email'
           className='py-6'
           placeholder='example@example.com'
         />
         <Input
-          type='password'
           value={password}
-          disabled={isPendingPassword}
           onChange={e => setPassword(e.target.value)}
+          disabled={isPendingPassword}
+          type='password'
           className='py-6'
           placeholder='password'
         />
@@ -86,24 +87,25 @@ function SignIn() {
         {/* 비밀번호 및 이메일 로그인 */}
         <Button
           onClick={handleSignInWithEmail}
-          disabled={isPendingPassword}
           className='w-full cursor-pointer'
+          disabled={isPendingPassword}
         >
           로그인
         </Button>
         {/* 카카오 소셜 로그인 */}
         <Button
+          className='w-full cursor-pointer'
           onClick={handleSignInWithKakao}
           disabled={isPendingKakao}
-          className='w-full cursor-pointer'
         >
           카카오 계정 로그인
         </Button>
+
         {/* 구글 소셜 로그인 */}
         <Button
+          className='w-full cursor-pointer'
           onClick={handleSignInWithGoogle}
           disabled={isPendingGoogle}
-          className='w-full cursor-pointer'
         >
           구글 계정 로그인
         </Button>

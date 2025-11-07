@@ -1,5 +1,4 @@
 import { type Database } from './database.types';
-
 // 포스트 관련
 export type PostEntity = Database['public']['Tables']['posts']['Row'];
 export type InsertPostEntity = Database['public']['Tables']['posts']['Insert'];
