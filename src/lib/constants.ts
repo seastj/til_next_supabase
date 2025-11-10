@@ -5,4 +5,11 @@ export const QUERY_KEYS = {
     list: ['todos', 'list'],
     detail: (id: string) => ['todos', 'deatail', id],
   },
+
+  // 프로필 useQuery 키 생성 및 관리
+  profile: {
+    all: ['profile'],
+    list: ['profile', 'list'],
+    byId: (userId: string) => ['profile', 'byId', userId],
+  },
 };
