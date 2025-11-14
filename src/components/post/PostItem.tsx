@@ -12,8 +12,14 @@ import defaultAvatar from '/public/assets/icons/default-avatar.jpg';
 import { formatTimeAgo } from '@/lib/time';
 import EditPostItemButton from './EditPostItemButton';
 import DeletePostButton from './DeletePostButton';
+import { useSession } from '@/stores/session';
 
 export default function PostItem(post: Post) {
+  // 내가 만든 post 인지 확인
+  const session = useSession();
+  const userId = session?.user.id;
+  const isMine = userId === post.author.id;
+
   return (
     <div className='flex flex-col gap-4 border-b pb-8'>
       {/* 1. 유저 정보, 수정/삭제 버튼 */}
@@ -40,8 +46,12 @@ export default function PostItem(post: Post) {
 
         {/* 1-2. 수정/삭제 버튼 */}
         <div className='text-muted-foreground flex text-sm'>
-          <EditPostItemButton {...post} />
-          <DeletePostButton id={post.id} />
+          {isMine && (
+            <>
+              <EditPostItemButton {...post} />
+              <DeletePostButton id={post.id} />
+            </>
+          )}
         </div>
       </div>
 
