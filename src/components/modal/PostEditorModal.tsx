@@ -9,6 +9,7 @@ import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
 import Image from 'next/image';
 import { useSession } from '@/stores/session';
 import { useOpenAlertModal } from '@/stores/alertModalStore';
+import { useUpdatePost } from '@/hooks/mutations/post/useUpdatePost';
 
 type Image = {
   file: File;
@@ -22,15 +23,25 @@ export default function PostEditorModal() {
   // 경고창
   const openAlertModal = useOpenAlertModal();
 
-  const { isOpen, close } = usePostEditorModal();
+  // const { isOpen, close } = usePostEditorModal();
+  const postEditorModalStore = usePostEditorModal();
 
   // 글등록 mutation 을 사용함.
   const { mutate: createPost, isPending: isCreatePostPending } = useCreatePost({
+    // onSuccess: () => {
+    //   postEditorModalStore.actions.close();
+    // },
+    // onError: error => {
+    //   toast.error('포스트 생성에 실패했습니다.', { position: 'top-center' });
+    // },
+  });
+  // 글수정 mutation 을 사용함.
+  const { mutate: updatePost, isPending: isUpdatePostPending } = useUpdatePost({
     onSuccess: () => {
-      close();
+      postEditorModalStore.actions.close();
     },
     onError: error => {
-      toast.error('포스트 생성에 실패했습니다.', { position: 'top-center' });
+      toast.error('포스트 수정에 실패하였습니다.', { position: 'top-center' });
     },
   });
 
@@ -52,18 +63,25 @@ export default function PostEditorModal() {
 
   // 자동포커스 및 내용 초기화
   useEffect(() => {
-    if (!isOpen) return;
-
-    // 웹브라우저의 캐시에 저장된 이미지 리셋
-    images.forEach(img => {
-      // 메모리 상에서 제거
-      URL.revokeObjectURL(img.previewUrl);
-    });
-
+    if (!postEditorModalStore.isOpen) {
+      // 웹브라우저의 캐시에 저장된 이미지 리셋
+      images.forEach(img => {
+        // 메모리 상에서 제거
+        URL.revokeObjectURL(img.previewUrl);
+      });
+      return;
+    }
+    if (postEditorModalStore.type === 'CREATE') {
+      // 생성이므로 값을 비워둠
+      setContent('');
+      setImages([]);
+    } else {
+      // 수정모드 에서는 내용이 나와야합니다.
+      setContent(postEditorModalStore.content);
+      setImages([]);
+    }
     textareaRef.current?.focus();
-    setContent('');
-    setImages([]);
-  }, [isOpen]);
+  }, [postEditorModalStore.isOpen]);
 
   const handleCloseModal = () => {
     if (content !== '' || images.length !== 0) {
@@ -72,7 +90,7 @@ export default function PostEditorModal() {
         title: '포스트 작성이 완료되지 않았습니다.',
         discription: '화면에서 나가면 작성중이던 내용이 사라집니다.',
         onNegative: () => {
-          close();
+          postEditorModalStore.actions.close();
         },
         onPositive: () => {
           console.log('취소 확인');
@@ -80,18 +98,32 @@ export default function PostEditorModal() {
       });
       return;
     }
-    close();
+    postEditorModalStore.actions.close();
   };
 
-  // 실제 포스트 등록하기
-  const handleCreatePost = () => {
+  // 실제 포스트 등록 또는 편집하기
+  // 이름만 바뀜
+  // const handleCreatePost = () => {
+
+  const handleSavePost = () => {
     if (content.trim() === '') return;
-    // createPost(content);
-    createPost({
-      content,
-      userId: session!.user.id,
-      images: images.map(item => item.file),
-    });
+    if (!postEditorModalStore.isOpen) return;
+
+    if (postEditorModalStore.type === 'CREATE') {
+      // 새글 생성
+      createPost({
+        content,
+        userId: session!.user.id,
+        images: images.map(item => item.file),
+      });
+    } else {
+      // 수정 상태
+      if (content === postEditorModalStore.content) return;
+      updatePost({
+        id: postEditorModalStore.postId,
+        content,
+      });
+    }
   };
 
   // 이미지들이 선택되었을 때 실행할 핸들러
@@ -119,14 +151,18 @@ export default function PostEditorModal() {
     URL.revokeObjectURL(img.previewUrl);
   };
 
+  // 글수정 또는 새글 작성시 로딩 처리
+  const isPending = isCreatePostPending || isUpdatePostPending;
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleCloseModal}>
+    <Dialog open={postEditorModalStore.isOpen} onOpenChange={handleCloseModal}>
       <DialogContent className='max-h-[90vh]'>
         <DialogTitle>포스트 작성</DialogTitle>
         <textarea
           ref={textareaRef}
           value={content}
           onChange={e => setContent(e.target.value)}
+          disabled={isPending}
           className='max-h-125 min-h-25 focus:outline-none'
           placeholder='새로운 글을 등록해주세요.'
         />
@@ -139,7 +175,29 @@ export default function PostEditorModal() {
           multiple
           className='hidden'
         />
-        {/* 이미지 미리보기 슬라이드 */}
+        {/* 편집모드일 때 보여지는 부분 */}
+        {postEditorModalStore.isOpen &&
+          postEditorModalStore.type === 'EDIT' && (
+            <Carousel>
+              <CarouselContent>
+                {postEditorModalStore.imageUrls?.map(url => (
+                  <CarouselItem key={url} className='basis-2/5'>
+                    <div className='relative w-full h-48'>
+                      <Image
+                        src={url}
+                        alt='이미지 미리보기'
+                        fill
+                        unoptimized
+                        className='rounded-sm object-cover'
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          )}
+
+        {/* 포스트 생성시 활용 */}
         {images.length > 0 && (
           <Carousel>
             <CarouselContent>
@@ -167,16 +225,22 @@ export default function PostEditorModal() {
           </Carousel>
         )}
 
+        {/* 편집 상태에서는 이미지 추가 안함 */}
+        {postEditorModalStore.isOpen &&
+          postEditorModalStore.type === 'CREATE' && (
+            <Button
+              disabled={isPending}
+              onClick={() => fileInputRef.current?.click()}
+              variant='outline'
+              className='cursor-pointer'
+            >
+              <ImageIcon /> 이미지 추가
+            </Button>
+          )}
+
         <Button
-          onClick={() => fileInputRef.current?.click()}
-          variant='outline'
-          className='cursor-pointer'
-        >
-          <ImageIcon /> 이미지 추가
-        </Button>
-        <Button
-          disabled={isCreatePostPending}
-          onClick={handleCreatePost}
+          disabled={isPending}
+          onClick={handleSavePost}
           className='cursor-pointer'
         >
           저장
