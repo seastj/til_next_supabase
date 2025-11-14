@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updatePost } from '@/apis/post';
 import { QUERY_KEYS } from '@/lib/constants';
-import { Post, UseMutationCallback } from '@/types/types';
+import type { Post, UseMutationCallback } from '@/types/types';
 
 export function useUpdatePost(callback?: UseMutationCallback) {
   const queryClient = useQueryClient();
