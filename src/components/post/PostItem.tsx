@@ -1,23 +1,34 @@
 'use client';
-import type { Post } from '@/types/types';
-import { HeartIcon, MessageCircle } from 'lucide-react';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel';
-import defaultAvatar from '/public/assets/icons/default-avatar.jpg';
+import { usePostByIdData } from '@/hooks/queries/usePostByIdData';
 import { formatTimeAgo } from '@/lib/time';
-import EditPostItemButton from './EditPostItemButton';
-import DeletePostButton from './DeletePostButton';
 import { useSession } from '@/stores/session';
+import { HeartIcon, MessageCircle } from 'lucide-react';
+import Image from 'next/image';
+import DeletePostButton from './DeletePostButton';
+import EditPostItemButton from './EditPostItemButton';
+import defaultAvatar from '/public/assets/icons/default-avatar.jpg';
+import Loader from '../Loader';
+import FallBack from '../FallBack';
 
-export default function PostItem(post: Post) {
+export default function PostItem({ postId }: { postId: number }) {
   // 내가 만든 post 인지 확인
   const session = useSession();
   const userId = session?.user.id;
+  // 실제 쿼리로 id 를 전달해서 post를 가져온다.
+  const {
+    data: post,
+    isPending,
+    error,
+  } = usePostByIdData({ postId, type: 'FEED' });
+
+  if (isPending) return <Loader />;
+  if (error) return <FallBack />;
+
   const isMine = userId === post.author.id;
 
   return (
