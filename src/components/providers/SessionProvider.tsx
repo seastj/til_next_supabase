@@ -14,8 +14,8 @@ export default function SessionProvider({ children }: SessionProviderProps) {
 
   const setSession = useSetSession();
   const isSessionLoaded = useSessionLoaded();
-  // 2 단계.
-  // session 데이터 안쪽의 user.id 를 인수로 전달함.
+  // 2 단계
+  // session 데이터 안쪽의  user.id 를 인수로 전달함.
   const { data: profile, isLoading: isProfileLoading } = useProfileData(
     session?.user.id
   );
@@ -31,8 +31,8 @@ export default function SessionProvider({ children }: SessionProviderProps) {
   // 아직 세션이 없다면
   if (!isSessionLoaded) return <GlobalLoading />;
 
-  // 3 단계
-  // if (!isProfileLoading) return <GlobalLoading />;
+  // 3단계
+  if (isProfileLoading) return <GlobalLoading />;
 
   return <div>{children}</div>;
 }

@@ -2,11 +2,11 @@ import { BUCKET_NAME } from '@/lib/constants';
 import supabase from '@/lib/supabase/client';
 
 type ImageType = {
-  file: File;
   filePath: string;
+  file: File;
 };
 
-export async function uploadsImage({ file, filePath }: ImageType) {
+export async function uploadImage({ filePath, file }: ImageType) {
   // 파일을 업로드 함.
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)

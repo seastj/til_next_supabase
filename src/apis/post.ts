@@ -1,6 +1,6 @@
 import supabase from '@/lib/supabase/client';
 import { UpdatePostEntity } from '@/types/types';
-import { uploadsImage } from './image';
+import { uploadImage } from './image';
 
 // 1. 글 등록
 export async function createPost(content: string) {
@@ -45,7 +45,7 @@ export async function createPostWithImages({
         // 3. 파일의 업로드할 경로를 만들어 냄
         const filePath = `${userId}/${post.id}/${fileName}`;
         // 4. 파일 업로드 함.
-        return uploadsImage({ filePath, file });
+        return uploadImage({ filePath, file });
       })
     );
 
@@ -67,7 +67,7 @@ export async function updatePost(post: UpdatePostEntity & { id: number }) {
     .from('posts')
     .update(post)
     .eq('id', post.id)
-    .select('*')
+    .select()
     .single();
   if (error) throw error;
   return data;
@@ -78,7 +78,7 @@ export async function deletePost(id: number) {
     .from('posts')
     .delete()
     .eq('id', id)
-    .select('*')
+    .select()
     .single();
 
   if (error) throw error;
@@ -87,25 +87,63 @@ export async function deletePost(id: number) {
   return data;
 }
 
-// 5. 포스트 목록 조회
-export async function fetchPosts({ from, to }: { from: number; to: number }) {
+// 5. 포스트 목록 조회 : likes 관련 내용도 추가
+export async function fetchPosts({
+  from,
+  to,
+  userId,
+}: {
+  from: number;
+  to: number;
+  userId: string;
+}) {
   const { data, error } = await supabase
     .from('posts')
-    .select('*, author: profiles!author_id(*)')
+    .select('*, author: profiles!author_id(*), myLiked: likes!post_id(*)')
+    .eq('myLiked.user_id', userId)
     .order('created_at', { ascending: false })
     .range(from, to);
 
   if (error) throw error;
-  return data;
+  return data.map(post => ({
+    ...post,
+    isLiked: post.myLiked && post.myLiked.length > 0,
+  }));
 }
 
 // 6. 포스트 하나 조회
-export async function fetchPostById(postId: number) {
+export async function fetchPostById({
+  postId,
+  userId,
+}: {
+  postId: number;
+  userId: string;
+}) {
   const { data, error } = await supabase
     .from('posts')
-    .select('*, author: profiles!author_id(*)')
+    .select('*, author: profiles!author_id(*), myLiked: likes!post_id(*)')
+    .eq('myLiked.user_id', userId)
     .eq('id', postId)
     .single();
+  if (error) throw error;
+  return {
+    ...data,
+    isLiked: data.myLiked && data.myLiked.length > 0,
+  };
+}
+
+// 7. 좋아요 토글
+export async function togglePostLike({
+  postId,
+  userId,
+}: {
+  postId: number;
+  userId: string;
+}) {
+  const { data, error } = await supabase.rpc('toggle_post_like', {
+    p_post_id: postId,
+    p_user_id: userId,
+  });
   if (error) throw error;
   return data;
 }

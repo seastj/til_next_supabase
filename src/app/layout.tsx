@@ -40,6 +40,7 @@ export default function RootLayout({
       >
         {/* Portal 용 DIV */}
         <div id='modal-root' />
+
         <div className='flex min-h-[100vh] flex-col'>
           {/* 컴포넌트 배치 */}
           <ToastProvider />

@@ -1,7 +1,8 @@
+'use client';
 import { ImageIcon, XIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '../ui/button';
-import { usePostEditorModal } from '@/stores/postEditorModalStore';
+import { Button } from '@/components/ui/button';
+import { usePostEdiotorModal } from '@/stores/postEditorModalStore';
 import { useEffect, useRef, useState } from 'react';
 import { useCreatePost } from '@/hooks/mutations/post/useCreatePost';
 import { toast } from 'sonner';
@@ -11,7 +12,7 @@ import { useSession } from '@/stores/session';
 import { useOpenAlertModal } from '@/stores/alertModalStore';
 import { useUpdatePost } from '@/hooks/mutations/post/useUpdatePost';
 
-type Image = {
+type ImageFile = {
   file: File;
   previewUrl: string;
 };
@@ -19,29 +20,31 @@ type Image = {
 export default function PostEditorModal() {
   // 사용자 정보 받아오기
   const session = useSession();
-
   // 경고창
   const openAlertModal = useOpenAlertModal();
-
-  // const { isOpen, close } = usePostEditorModal();
-  const postEditorModalStore = usePostEditorModal();
+  const postEditorModalStore = usePostEdiotorModal();
 
   // 글등록 mutation 을 사용함.
   const { mutate: createPost, isPending: isCreatePostPending } = useCreatePost({
-    // onSuccess: () => {
-    //   postEditorModalStore.actions.close();
-    // },
-    // onError: error => {
-    //   toast.error('포스트 생성에 실패했습니다.', { position: 'top-center' });
-    // },
+    onSuccess: () => {
+      postEditorModalStore.actions.close();
+    },
+    onError: error => {
+      toast.error('포스트 생성에 실패했습니다.', {
+        position: 'top-center',
+      });
+    },
   });
+
   // 글수정 mutation 을 사용함.
   const { mutate: updatePost, isPending: isUpdatePostPending } = useUpdatePost({
     onSuccess: () => {
       postEditorModalStore.actions.close();
     },
     onError: error => {
-      toast.error('포스트 수정에 실패하였습니다.', { position: 'top-center' });
+      toast.error('포스트 수정에 실패했습니다.', {
+        position: 'top-center',
+      });
     },
   });
 
@@ -52,7 +55,7 @@ export default function PostEditorModal() {
   // 이미지 Input 태그 참조
   const fileInputRef = useRef<HTMLInputElement>(null);
   // 이미지 미리보기 내용들
-  const [images, setImages] = useState<Image[]>([]);
+  const [images, setImages] = useState<ImageFile[]>([]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -64,9 +67,7 @@ export default function PostEditorModal() {
   // 자동포커스 및 내용 초기화
   useEffect(() => {
     if (!postEditorModalStore.isOpen) {
-      // 웹브라우저의 캐시에 저장된 이미지 리셋
       images.forEach(img => {
-        // 메모리 상에서 제거
         URL.revokeObjectURL(img.previewUrl);
       });
       return;
@@ -76,23 +77,24 @@ export default function PostEditorModal() {
       setContent('');
       setImages([]);
     } else {
-      // 수정모드 에서는 내용이 나와야합니다.
+      // 수정 모드에서는 내용이 나와야 합니다.
       setContent(postEditorModalStore.content);
       setImages([]);
     }
+
     textareaRef.current?.focus();
   }, [postEditorModalStore.isOpen]);
 
   const handleCloseModal = () => {
     if (content !== '' || images.length !== 0) {
-      // 안내창을 띄워서 확인후 닫기 실행 처리
+      // 안내창을 띄워서 확인후 닫기 실행처리
       openAlertModal({
         title: '포스트 작성이 완료되지 않았습니다.',
-        discription: '화면에서 나가면 작성중이던 내용이 사라집니다.',
-        onNegative: () => {
+        description: '화면에서 나가면 작성중이던 내용이 사라집니다.',
+        onPositive: () => {
           postEditorModalStore.actions.close();
         },
-        onPositive: () => {
+        onNegative: () => {
           console.log('취소 확인');
         },
       });
@@ -101,8 +103,8 @@ export default function PostEditorModal() {
     postEditorModalStore.actions.close();
   };
 
-  // 실제 포스트 등록 또는 편집하기
-  // 이름만 바뀜
+  // 실제 포스트 등록 또는 편집 하기
+  // 이름만 바꿈
   // const handleCreatePost = () => {
 
   const handleSavePost = () => {
@@ -112,8 +114,9 @@ export default function PostEditorModal() {
     if (postEditorModalStore.type === 'CREATE') {
       // 새글 생성
       createPost({
-        content,
+        content: content,
         userId: session!.user.id,
+        // 파일만 추출해 주기
         images: images.map(item => item.file),
       });
     } else {
@@ -121,7 +124,7 @@ export default function PostEditorModal() {
       if (content === postEditorModalStore.content) return;
       updatePost({
         id: postEditorModalStore.postId,
-        content,
+        content: content,
       });
     }
   };
@@ -143,7 +146,7 @@ export default function PostEditorModal() {
   };
 
   // 이미지가 제거될 때 실행될 핸들러
-  const handleDeleteImage = (img: Image) => {
+  const handleDeleteImage = (img: ImageFile) => {
     setImages(prevImg =>
       prevImg.filter(item => item.previewUrl != img.previewUrl)
     );
@@ -151,7 +154,7 @@ export default function PostEditorModal() {
     URL.revokeObjectURL(img.previewUrl);
   };
 
-  // 글수정 또는 새글 작성시 로딩 처리
+  // 글 수정 또는 새글 작성시 로딩 처리
   const isPending = isCreatePostPending || isUpdatePostPending;
 
   return (
@@ -166,6 +169,7 @@ export default function PostEditorModal() {
           className='max-h-125 min-h-25 focus:outline-none'
           placeholder='새로운 글을 등록해주세요.'
         />
+
         {/* 이미지 선택 Input 태그 숨김 */}
         <input
           onChange={handleSelectImages}
@@ -175,6 +179,7 @@ export default function PostEditorModal() {
           multiple
           className='hidden'
         />
+
         {/* 편집모드일 때 보여지는 부분 */}
         {postEditorModalStore.isOpen &&
           postEditorModalStore.type === 'EDIT' && (
@@ -211,13 +216,13 @@ export default function PostEditorModal() {
                       unoptimized
                       className='rounded-sm object-cover'
                     />
-                  </div>
-                  {/* 삭제 아이콘 및 기능 추가 */}
-                  <div
-                    onClick={() => handleDeleteImage(img)}
-                    className='absolute top-0 right-0 m-1 cursor-pointer rounded-full bg-black/30 p-1'
-                  >
-                    <XIcon className='w-4 h-4 text-white' />
+                    {/* 삭제 아이콘 및 기능 추가 */}
+                    <div
+                      onClick={() => handleDeleteImage(img)}
+                      className='absolute top-0 right-0 m-1 cursor-pointer rounded-full bg-black/30 p-1'
+                    >
+                      <XIcon className='w-4 h-4 text-white' />
+                    </div>
                   </div>
                 </CarouselItem>
               ))}

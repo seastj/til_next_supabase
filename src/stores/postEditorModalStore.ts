@@ -10,16 +10,17 @@ type CreateMode = {
 type EditMode = {
   isOpen: true;
   type: 'EDIT';
+
   // 초기 설정값의 타입
   postId: number;
   content: string;
   imageUrls: string[] | null;
 };
 
-// 모달이 Open 인 경우 타입
+// 모달이 Open인 경우 타입
 type OpenState = CreateMode | EditMode;
 
-// 모달이 Close 인 경우 타입
+// 모달이 Close인 경우 타입
 type CloseState = {
   isOpen: false;
 };
@@ -40,9 +41,6 @@ const usePostEditorStore = create(
         openEdit: (params: Omit<EditMode, 'isOpen' | 'type'>) => {
           set({ isOpen: true, type: 'EDIT', ...params });
         },
-        open: () => {
-          set({ isOpen: true });
-        },
         close: () => {
           set({ isOpen: false });
         },
@@ -60,9 +58,8 @@ export const useOpenEditPostModal = () => {
   const openEdit = usePostEditorStore(store => store.actions.openEdit);
   return openEdit;
 };
-
-// 미리 store 전체 내보내기
-export const usePostEditorModal = () => {
+// 미리 store 전체 내보기니
+export const usePostEdiotorModal = () => {
   const store = usePostEditorStore();
   return store as typeof store & State;
 };

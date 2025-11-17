@@ -1,4 +1,4 @@
-import { createPost, createPostWithImages } from '@/apis/post';
+import { createPostWithImages } from '@/apis/post';
 import { QUERY_KEYS } from '@/lib/constants';
 import { UseMutationCallback } from '@/types/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

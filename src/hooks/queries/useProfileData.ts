@@ -7,7 +7,7 @@ import { useSession } from '@/stores/session';
 export default function useProfileData(userId?: string) {
   // 나의 정보 확인
   const session = useSession();
-  // 나의 계정인지 확인
+  // 나의 계정인지를 검사
   const isMine = userId === session?.user.id;
 
   return useQuery({
