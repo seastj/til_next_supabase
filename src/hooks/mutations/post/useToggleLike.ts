@@ -29,6 +29,7 @@ export function useTogglePostLike(callback?: UseMutationCallback) {
           like_count: post.isLiked ? post.like_count - 1 : post.like_count + 1,
         };
       });
+
       // 이전 데이터 복원용
       return { prevPost };
     },
@@ -44,6 +45,7 @@ export function useTogglePostLike(callback?: UseMutationCallback) {
           context.prevPost
         );
       }
+
       if (callback?.onError) callback.onError(error);
     },
   });
