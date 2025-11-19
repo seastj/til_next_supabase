@@ -26,7 +26,9 @@ export default function PostFeed({ authorId }: { authorId?: string }) {
   return (
     <div className='flex flex-col gap-10'>
       {data?.pages.map(page =>
-        page.map(postId => <PostItem key={postId} postId={postId} />)
+        page.map(postId => (
+          <PostItem key={postId} postId={postId} type='FEED' />
+        ))
       )}
       {isFetchingNextPage && <Loader />}
       {/* 웹브라우저 하단 감지용 DOM 요소를 추가 */}

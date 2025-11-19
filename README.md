@@ -1,801 +1,509 @@
-# 프로필 수정하기
+# 댓글 UI
 
-## 1. 수정버튼 생성
+## 1. 포스트 리스트 아이템 클릭시 상세페이지 이동
 
-- `/src/components/profile/EditProfileButton.tsx 파일` 생성
+- `/src/components/post/PostItem.tsx` 업데이트
+
+### 1.1. 내용을 클릭시 상세페이지로 이동하기
+
+```tsx
+<Link href={`/post/${post.id}`}>
+  <div className='line-clamp-2 break-words whitespace-pre-wrap'>
+    {post.content}
+  </div>
+</Link>
+```
+
+### 1.2. 댓글달기 버튼 클릭시 상세페이지로 이동하기
+
+```tsx
+<Link href={`/post/${post.id}`}>
+  <div className='hover:bg-muted flex cursor-pointer items-center gap-2 rounded-xl border-1 p-2 px-4 text-sm'>
+    <MessageCircle className='h-4 w-4' />
+    <span>댓글 달기</span>
+  </div>
+</Link>
+```
+
+## 2. 상세화면 UI
+
+- `/src/app/(protected)/post/[id]/page.tsx`
+
+```tsx
+import PostItem from '@/components/post/PostItem';
+import { redirect } from 'next/navigation';
+
+interface PostDetailProps {
+  params: {
+    id: string;
+  };
+}
+
+async function PostDetail({ params }: PostDetailProps) {
+  const { id } = params;
+  if (!id || id.trim() === '') {
+    redirect(`/`);
+  }
+  return (
+    <div>
+      <PostItem postId={Number(id)} />
+    </div>
+  );
+}
+
+export default PostDetail;
+```
+
+## 3. 새로고침시 캐시 적용하기
+
+- 상세화면에서 렌더링되는 경우에만
+- 캐시데이터 말고, 서버에서 직접 불러오기 적용
+- `/src/components/post/PostItem.tsx` 업데이트
+
+### 3.1. PostItem 에 Props 추가함.
+
+```tsx
+// type Props 추가
+export default function PostItem({
+  postId,
+  type,
+}: {
+  postId: number;
+  type: 'FEED' | 'DETAIL';
+}) {...}
+```
+
+- `/src/app/(protected)/post/[id]/page.tsx`
+
+```tsx
+import PostItem from '@/components/post/PostItem';
+import { redirect } from 'next/navigation';
+
+interface PostDetailProps {
+  params: {
+    id: string;
+  };
+}
+
+async function PostDetail({ params }: PostDetailProps) {
+  const { id } = params;
+  if (!id || id.trim() === '') {
+    redirect(`/`);
+  }
+  return (
+    <div>
+      <PostItem postId={Number(id)} type='DETAIL' />
+    </div>
+  );
+}
+
+export default PostDetail;
+```
+
+- `/src/components/post/PostFeed.tsx`
 
 ```tsx
 'use client';
-import { Button } from '@/components/ui/button';
+import FallBack from '../FallBack';
+import Loader from '../Loader';
+import PostItem from './PostItem';
 
-export default function EditProfileButton() {
+// intersectionObjser
+import { useInfinitePostData } from '@/hooks/queries/useInfinitePostData';
+import { useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
+
+export default function PostFeed({ authorId }: { authorId?: string }) {
+  // 무한 루프 API 호출 (fetchNextPage 추가)
+  const { data, error, isPending, fetchNextPage, isFetchingNextPage } =
+    useInfinitePostData(authorId);
+  // intersectionObserver 레퍼런스
+  const { ref, inView } = useInView();
+  // 데이터 추가 관리
+  useEffect(() => {
+    console.log('inView', inView);
+    // 데이터를 추가함. (fetchNextPage 호출)
+    fetchNextPage();
+  }, [inView]);
+
+  if (error) return <FallBack />;
+  if (isPending) return <Loader />;
   return (
-    <Button variant='secondary' className='cursor-pointer'>
-      프로필 수정
-    </Button>
+    <div className='flex flex-col gap-10'>
+      {data?.pages.map(page =>
+        page.map(postId => (
+          <PostItem key={postId} postId={postId} type='FEED' />
+        ))
+      )}
+      {isFetchingNextPage && <Loader />}
+      {/* 웹브라우저 하단 감지용 DOM 요소를 추가 */}
+      <div ref={ref}></div>
+    </div>
   );
 }
 ```
 
-## 2. 배치
+## 4. Props 의 type 값에 따른 UI 적용
 
-- `/src/components/profile/ProfileInfo.tsx` 배치
+- `/src/components/post/PostItem.tsx` 업데이트
 
 ```tsx
-// 세션 정보 참조하기
-const session = useSession();
-// 본인인지를 검증
-const isMine = session?.user.id === userId;
+ return (
+    <div
+      className={`flex flex-col gap-4  pb-8 ${type === 'FEED' && 'border-b'}`}
+    >
 ```
 
 ```tsx
 {
-  /* 프로필 수정 */
-}
-{
-  isMine && <EditProfileButton />;
+  type === 'FEED' ? (
+    <Link href={`/post/${post.id}`}>
+      <div className='line-clamp-2 break-words whitespace-pre-wrap'>
+        {post.content}
+      </div>
+    </Link>
+  ) : (
+    <div className='break-words whitespace-pre-wrap'>{post.content}</div>
+  );
 }
 ```
 
-## 3. 프로필 수정 모달 구성하기
-
-### 3.1. 프로필 모달의 상태를 관리할 `Store 생성`
-
-- `/src/stores/profileEditorModal.ts 파일` 생성
-
-```ts
-import { create } from 'zustand';
-import { combine, devtools } from 'zustand/middleware';
-
-const initialState = {
-  isOpen: false,
-};
-
-const useProfileEditorModalStore = create(
-  devtools(
-    combine(initialState, set => ({
-      actions: {
-        open: () => {
-          set({ isOpen: true });
-        },
-        close: () => {
-          set({ isOpen: false });
-        },
-      },
-    })),
-    { name: 'profileEditorModalStore' }
-  )
-);
-
-// 사용하기 좋도록 별도 hook 으로 뽑기
-export const useOpenProfileEditorModal = () => {
-  const open = useProfileEditorModalStore(store => store.actions.open);
-  return open;
-};
-
-// 전체 내보내기
-export const useProfileEditor = () => {
-  const store = useProfileEditorModalStore();
-  return store;
-};
-```
-
-### 3.2. Modal 컴포넌트 만들기
-
-- `/src/components/profile/ProfileEditorModal.tsx 파일` 생성
+- 전체 코드
 
 ```tsx
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+'use client';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from '@/components/ui/carousel';
+import { usePostByIdData } from '@/hooks/queries/usePostByIdData';
+import { formatTimeAgo } from '@/lib/time';
 import { useSession } from '@/stores/session';
-
-import { Loader } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
+import Image from 'next/image';
 import FallBack from '../FallBack';
+import Loader from '../Loader';
+import DeletePostButton from './DeletePostButton';
+import EditPostItemButton from './EditPostItemButton';
+import LikeButton from './LikeButton';
+import defaultAvatar from '/public/assets/icons/default-avatar.jpg';
+import Link from 'next/link';
+
+export default function PostItem({
+  postId,
+  type,
+}: {
+  postId: number;
+  type: 'FEED' | 'DETAIL';
+}) {
+  // 내가 만든 post 인지 확인
+  const session = useSession();
+  const userId = session?.user.id;
+  // 실제 쿼리로 id 를 전달해서 post를 가져오자.
+  const {
+    data: post,
+    isPending,
+    error,
+    // } = usePostByIdData({ postId, type: type });
+    // type 을 외부로 부터 전달 받도록 구성
+  } = usePostByIdData({ postId, type });
+
+  if (isPending) return <Loader />;
+  if (error) return <FallBack />;
+
+  const isMine = userId === post.author.id;
+
+  return (
+    <div
+      className={`flex flex-col gap-4  pb-8 ${type === 'FEED' && 'border-b'}`}
+    >
+      <div className='flex justify-between'>
+        <div className='flex items-start gap-4'>
+          {/* 사용자 페이지 이동하기 */}
+          <Link href={`/profile/${post.author.id}`}>
+            <Image
+              src={post.author.avatar_url || defaultAvatar}
+              alt={`${post.author.nickname}의 프로필 이미지`}
+              className='h-10 w-10 rounded-full object-cover'
+              width={40}
+              height={40}
+            />
+          </Link>
+          <div>
+            <div className='font-bold hover:underline'>
+              <Link href={`/profile/${post.author.id}`}>
+                {post.author.nickname}
+              </Link>
+            </div>
+            <div className='text-muted-foreground text-sm'>
+              {formatTimeAgo(post.created_at)}
+              {/* {new Date(post.created_at).toLocaleString()} */}
+            </div>
+          </div>
+        </div>
+
+        <div className='text-muted-foreground flex text-sm'>
+          {isMine && (
+            <>
+              <EditPostItemButton {...post} />
+              <DeletePostButton id={post.id} />
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className='flex cursor-pointer flex-col gap-5'>
+        {type === 'FEED' ? (
+          <Link href={`/post/${post.id}`}>
+            <div className='line-clamp-2 break-words whitespace-pre-wrap'>
+              {post.content}
+            </div>
+          </Link>
+        ) : (
+          <div className='break-words whitespace-pre-wrap'>{post.content}</div>
+        )}
+
+        <Carousel>
+          <CarouselContent>
+            {post.image_urls?.map((url, index) => (
+              <CarouselItem className={`basis-3/5`} key={index}>
+                <div className='overflow-hidden rounded-xl'>
+                  <img
+                    src={url}
+                    className='h-full max-h-[350px] w-full object-cover'
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </div>
+
+      <div className='flex gap-2'>
+        <LikeButton
+          id={post.id}
+          likeCount={post.like_count}
+          isLiked={post.isLiked}
+        />
+        <Link href={`/post/${post.id}`}>
+          <div className='hover:bg-muted flex cursor-pointer items-center gap-2 rounded-xl border-1 p-2 px-4 text-sm'>
+            <MessageCircle className='h-4 w-4' />
+            <span>댓글 달기</span>
+          </div>
+        </Link>
+      </div>
+    </div>
+  );
+}
+```
+
+## 5. Comment 컴포넌트
+
+- `/src/components/comment 폴더` 생성
+
+### 5.1. 에디터
+
+- `/src/components/comment/CommentEditor.tsx 파일` 생성
+
+```tsx
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+
+export default function CommentEditor() {
+  return (
+    <div className='flex flex-col gap-2'>
+      <Textarea />
+      <div className='flex justify-end'>
+        <Button>작성</Button>
+      </div>
+    </div>
+  );
+}
+```
+
+### 5.2. 아이템
+
+- `/src/components/comment/CommentItem.tsx 파일` 생성
+
+```tsx
 import defaultAvatar from '/public/assets/icons/default-avatar.jpg';
 import Image from 'next/image';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import useProfileData from '@/hooks/queries/useProfileData';
+import Link from 'next/link';
 
-export default function ProfileEditorModal() {
-  const session = useSession();
-  const {
-    data: profile,
-    error: fetchProfileError,
-    isPending: isFetchingProfile,
-  } = useProfileData(session?.user.id);
-
+export default function CommentItem() {
   return (
-    <Dialog>
-      <DialogContent className='flex flex-col gap-5'>
-        <DialogTitle>프로필 수정하기</DialogTitle>
-        {fetchProfileError && <FallBack />}
-        {isFetchingProfile && <Loader />}
-        {!fetchProfileError && !isFetchingProfile && (
-          <>
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>프로필 이미지</div>
-              <Image
-                src={profile?.avatar_url || defaultAvatar}
-                alt='프로필 이미지'
-                className='h-40 w-40 cursor-pointer rounded-full object-cover'
-                width={160}
-                height={160}
-              />
+    <div className={'flex flex-col gap-8  border-b pb-5'}>
+      <div className='flex items-start gap-4'>
+        <Link href={'#'}>
+          <div className='flex h-full flex-col'>
+            <Image
+              className='h-10 w-10 rounded-full object-cover'
+              src={defaultAvatar}
+              width={40}
+              height={40}
+              alt='사용자아바타'
+            />
+          </div>
+        </Link>
+        <div className='flex w-full flex-col gap-2'>
+          <div className='font-bold'>작성자의 이름</div>
+          <div>댓글 컨텐츠</div>
+          <div className='text-muted-foreground flex justify-between text-sm'>
+            <div className='flex items-center gap-2'>
+              <div className='cursor-pointer hover:underline'>댓글</div>
+              <div className='bg-border h-[13px] w-[2px]'></div>
+              <div>10분 전</div>
             </div>
-
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>닉네임</div>
-              <Input />
+            <div className='flex items-center gap-2'>
+              <div className='cursor-pointer hover:underline'>수정</div>
+              <div className='bg-border h-[13px] w-[2px]'></div>
+              <div className='cursor-pointer hover:underline'>삭제</div>
             </div>
-
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>소개</div>
-              <Input />
-            </div>
-
-            <Button className='cursor-pointer'>수정하기</Button>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 ```
 
-### 3.3. Modal 에 Store 적용하기
+### 5.3. 리스트
 
-- `/src/components/profile/ProfileEditorModal.tsx 파일` 생성
-
-```tsx
-// Store 적용
-const store = useProfileEditor();
-const {
-  isOpen,
-  actions: { close, open },
-} = store;
-```
+- `/src/components/comment/CommentList.tsx 파일` 생성
 
 ```tsx
-    <Dialog open={isOpen} onOpenChange={close}>
-```
+import CommentItem from '@/components/comment/CommentItem';
 
-### 3.4. Modal 이라면 portal 이다.
-
-- `/src/components/provider/ModalProvider.tsx` 배치
-
-```tsx
-'use client';
-
-import { type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import PostEditorModal from '../modal/PostEditorModal';
-import AleartModal from '../modal/AlertModal';
-import ProfileEditorModal from '../profile/ProfileEditorModal';
-
-export default function ModalProvider({ children }: { children: ReactNode }) {
+export default function CommentList() {
   return (
-    <>
-      {createPortal(
-        <>
-          <PostEditorModal />
-          <AleartModal />
-          <ProfileEditorModal />
-        </>,
-        document.getElementById('modal-root')!
-      )}
-      {children}
-    </>
+    <div className='flex flex-col gap-5'>
+      <CommentItem />
+      <CommentItem />
+      <CommentItem />
+    </div>
   );
 }
 ```
 
-### 3.5. 모달창 띄우기
+### 5.4. 배치하기
 
-- `/src/components/profile/EditProfileButton.tsx` 수정
+- `/src/app/(protected)/post/[id]/page.tsx`
 
 ```tsx
-'use client';
-import { Button } from '@/components/ui/button';
-import { useOpenProfileEditorModal } from '@/stores/profileEditorModal';
+import CommentEditor from '@/components/comment/CommentEditor';
+import CommentList from '@/components/comment/CommentList';
+import PostItem from '@/components/post/PostItem';
+import { redirect } from 'next/navigation';
 
-export default function EditProfileButton() {
-  const openProfileEditorModal = useOpenProfileEditorModal();
+interface PostDetailProps {
+  params: {
+    id: string;
+  };
+}
+async function PostDetail({ params }: PostDetailProps) {
+  const { id } = await params;
+
+  if (!id || id.trim() === '') {
+    redirect('/');
+  }
+
   return (
-    <Button
-      onClick={openProfileEditorModal}
-      variant='secondary'
-      className='cursor-pointer'
-    >
-      프로필 수정
-    </Button>
+    <div className='flex flex-col gap-5'>
+      <PostItem postId={Number(id)} type={'DETAIL'} />
+      <div className='text-xl font-bold'>댓글</div>
+      <CommentEditor />
+      <CommentList />
+    </div>
   );
 }
+
+export default PostDetail;
 ```
 
-## 4. 프로필 업데이트
+## 6. 기능 테스트
 
-- `/src/components/profile/ProfileEditorModal.tsx` 업데이트
+### 6.1. 수정 기능 정상
 
-### 4.1. state 와 avatar 이미지 파일 타입 정의
+### 6.2. 삭제 기능 수정하기
 
-```tsx
-// 아바타 이미지 타입 정보 : 파일, 미리보기 주소
-type ImageType = {
-  file: File;
-  previewUrl: string;
-};
-```
+- 삭제시 `/` 이동
+- `/src/components/post/DeletePostButton.tsx` 업데이트
 
 ```tsx
-// 사용자 아바타 이미지 파일 관리
-const [avatarImage, setAvatarImage] = useState<ImageType | null>(null);
-// 기타 정보
-const [nickName, setNickName] = useState('');
-const [bio, setBio] = useState('');
-```
+// Next.js 의 next/navigation
+const router = useRouter();
 
-### 4.2. 프로필 이미지 기능 구현
-
-```tsx
-// 사용자 아바타 이미지 파일 관리
-const [avatarImage, setAvatarImage] = useState<ImageType | null>(null);
-// 기타 정보
-const [nickName, setNickName] = useState('');
-const [bio, setBio] = useState('');
-
-// input 태그 참조
-const fileInputRef = useRef<HTMLInputElement>(null);
-// input 태그에서 이미지가 선택되었다면 처리
-const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-  // 왜 file 이 아리날 files 라는 복수형인가? 배열로 값이 담겨 오므로
-  if (!e.target.files) {
-    return;
-  }
-  // 배열의 첫번째 이미지 선택
-  const file = e.target.files[0];
-
-  // 메모리 누수 방지책
-  if (avatarImage) {
-    URL.revokeObjectURL(avatarImage.previewUrl);
-  }
-  // 미리보기 이미지 생성
-  setAvatarImage({ file, previewUrl: URL.createObjectURL(file) });
-  e.target.value = '';
-};
-```
-
-```tsx
- {/* 파일 이미지 Input 태그 */}
-              <input
-                onChange={handleSelectImage}
-                type='file'
-                ref={fileInputRef}
-                className='hidden'
-                accept='image/*'
-              />
-
-              <Image
-                // 이미지를 클릭하면 file 클릭 처리진행 : current 로 접근
-                onClick={() => {
-                  if (fileInputRef.current) fileInputRef.current.click();
-                }}
-                src={
-                  avatarImage?.previewUrl ||
-                  profile?.avatar_url ||
-                  defaultAvatar
-                }
-                alt='프로필 이미지'
-                className='h-40 w-40 cursor-pointer rounded-full object-cover'
-                width={160}
-                height={160}
-              />
-```
-
-### 4.3. 닉네임과 자기소개 기능 구현
-
-```tsx
-              <div className='text-muted-foreground'>닉네임</div>
-              <Input
-                value={nickName}
-                onChange={e => setNickName(e.target.value)}
-              />
-            </div>
-
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>소개</div>
-              <Input value={bio} onChange={e => setBio(e.target.value)} />
-            </div>
-```
-
-### 4.4. 초기값으로 최초 적용하기
-
-```tsx
-// 최초 상태값 적용하기
-useEffect(() => {
-  if (isOpen && profile) {
-    setNickName(profile.nickname);
-    setBio(profile.bio);
-    setAvatarImage(null);
-  }
-}, [profile, isOpen]);
+const { mutate: deletePost, isPending: isDeletePostPending } = useDeletePost({
+  onSuccess: () => {
+    // 현재 웹브라우저의 URI 를 읽어들이고
+    // 만약 경로에 /post/아이디 가 있다면
+    // 상세 페이지로 판단하고 / 경로로 이동함
+    const pathName = window.location.pathname;
+    if (pathName.includes(`/post/${id}`)) {
+      // redirect('/');
+      router.push('/');
+    }
+  },
+  onError: error => {
+    toast.error('포스트 삭제에 실패하였습니다.', {
+      position: 'top-center',
+    });
+  },
+});
 ```
 
 - 전체코드
 
 ```tsx
-'use client';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { useSession } from '@/stores/session';
-
-import { Loader } from 'lucide-react';
-import FallBack from '../FallBack';
-import defaultAvatar from '/public/assets/icons/default-avatar.jpg';
-import Image from 'next/image';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import useProfileData from '@/hooks/queries/useProfileData';
-import { useProfileEditor } from '@/stores/profileEditorModal';
-import { useEffect, useRef, useState } from 'react';
+import { useDeletePost } from '@/hooks/mutations/post/useDeletePost';
+import { useOpenAlertModal } from '@/stores/alertModalStore';
+import { redirect, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
-// 아바타 이미지 타입 정보 : 파일, 미리보기 주소
-type ImageType = {
-  file: File;
-  previewUrl: string;
-};
+export default function DeletePostButton({ id }: { id: number }) {
+  const openAlertModal = useOpenAlertModal();
+  // Next.js 의 next/navigation
+  const router = useRouter();
 
-export default function ProfileEditorModal() {
-  // 사용자 정보 Store 에서 가져옴
-  const session = useSession();
-
-  // 사용자 정보 가져옴
-  const {
-    data: profile,
-    error: fetchProfileError,
-    isPending: isFetchingProfile,
-  } = useProfileData(session?.user.id);
-
-  // Store 적용 : Modal 열고, 닫은 상태를 반영함.
-  const store = useProfileEditor();
-  const {
-    isOpen,
-    actions: { close, open },
-  } = store;
-
-  // 사용자 아바타 이미지 파일 관리
-  const [avatarImage, setAvatarImage] = useState<ImageType | null>(null);
-  // 기타 정보
-  const [nickName, setNickName] = useState('');
-  const [bio, setBio] = useState('');
-
-  // input 태그 참조
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  // input 태그에서 이미지가 선택되었다면 처리
-  const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 왜 file 이 아리날 files 라는 복수형인가? 배열로 값이 담겨 오므로
-    if (!e.target.files) {
-      return;
-    }
-    // 배열의 첫번째 이미지 선택
-    const file = e.target.files[0];
-
-    // 메모리 누수 방지책
-    if (avatarImage) {
-      URL.revokeObjectURL(avatarImage.previewUrl);
-    }
-    // 미리보기 이미지 생성
-    setAvatarImage({ file, previewUrl: URL.createObjectURL(file) });
-    e.target.value = '';
-  };
-
-  // 최초 상태값 적용하기
-  useEffect(() => {
-    if (isOpen && profile) {
-      setNickName(profile.nickname);
-      setBio(profile.bio);
-      setAvatarImage(null);
-    }
-  }, [profile, isOpen]);
-
-  return (
-    <Dialog open={isOpen} onOpenChange={close}>
-      <DialogContent className='flex flex-col gap-5'>
-        <DialogTitle>프로필 수정하기</DialogTitle>
-        {fetchProfileError && <FallBack />}
-        {isFetchingProfile && <Loader />}
-        {!fetchProfileError && !isFetchingProfile && (
-          <>
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>프로필 이미지</div>
-              {/* 파일 이미지 Input 태그 */}
-              <input
-                onChange={handleSelectImage}
-                type='file'
-                ref={fileInputRef}
-                className='hidden'
-                accept='image/*'
-              />
-
-              <Image
-                // 이미지를 클릭하면 file 클릭 처리진행 : current 로 접근
-                onClick={() => {
-                  if (fileInputRef.current) fileInputRef.current.click();
-                }}
-                src={
-                  avatarImage?.previewUrl ||
-                  profile?.avatar_url ||
-                  defaultAvatar
-                }
-                alt='프로필 이미지'
-                className='h-40 w-40 cursor-pointer rounded-full object-cover'
-                width={160}
-                height={160}
-              />
-            </div>
-
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>닉네임</div>
-              <Input
-                value={nickName}
-                onChange={e => setNickName(e.target.value)}
-              />
-            </div>
-
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>소개</div>
-              <Input value={bio} onChange={e => setBio(e.target.value)} />
-            </div>
-
-            <Button className='cursor-pointer'>수정하기</Button>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-```
-
-## 5. Supabase 연동하기
-
-### 5.1. API 만들기
-
-- `/src/apis/image.ts` 보완
-
-```ts
-// 안전하게 업데이트 처리함.
-if (!files || files.length === 0) {
-  return;
-}
-```
-
-- `/src/apis/profile.ts` 추가
-
-```ts
-// 3. 프로필 업데이트
-export async function updateProfile({
-  userId,
-  nickname,
-  bio,
-  avatarImageFile,
-}: {
-  userId: string;
-  nickname: string;
-  bio?: string;
-  avatarImageFile?: File;
-}) {
-  // 1. 기존 아바타 이미지 삭제
-  if (avatarImageFile) {
-    await deleteImagesInPath(`${userId}/avatar`);
-  }
-
-  // 업로드된 url 을 보관할 변수
-  let newAvatarUrl: string | null = null;
-
-  // 2. 새로운 아바타 이미지 업로드
-  if (avatarImageFile) {
-    // 확장자 알아내기
-    const fileExtension = avatarImageFile.name.split('.').pop() || 'webp';
-    // 업로드될 이름이 중복되면 안되므로
-    const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExtension}`;
-    // 파일이 업로드 될 경로설정
-    const filePath = `${userId}/avatar/${fileName}`;
-    // 실제 파일 업로드
-    newAvatarUrl = await uploadImage({ file: avatarImageFile, filePath });
-  }
-
-  // 3. 프로필 테이블 작업
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ nickname, bio, avatar_url: newAvatarUrl })
-    .eq('id', userId)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return data;
-}
-```
-
-### 5.2. Mutation 만들기
-
-- `/src/hooks/mutations/profile 폴더` 생성
-- `/src/hooks/mutations/profile/useUpdateProfile.ts 파일` 생성
-
-- 1 단계
-
-```ts
-import { updateProfile } from '@/apis/profile';
-import { UseMutationCallback } from '@/types/types';
-import { useMutation } from '@tanstack/react-query';
-
-export function useUpdateProfile(callback?: UseMutationCallback) {
-  return useMutation({
-    mutationFn: updateProfile,
+  const { mutate: deletePost, isPending: isDeletePostPending } = useDeletePost({
     onSuccess: () => {
-      if (callback?.onSuccess) callback.onSuccess();
+      // 현재 웹브라우저의 URI 를 읽어들이고
+      // 만약 경로에 /post/아이디 가 있다면
+      // 상세 페이지로 판단하고 / 경로로 이동함
+      const pathName = window.location.pathname;
+      if (pathName.includes(`/post/${id}`)) {
+        // redirect('/');
+        router.push('/');
+      }
     },
     onError: error => {
-      if (callback?.onError) callback.onError(error);
-    },
-  });
-}
-```
-
-- 2 단계
-
-```tsx
-import { updateProfile } from '@/apis/profile';
-import { QUERY_KEYS } from '@/lib/constants';
-import { ProfileEntity, UseMutationCallback } from '@/types/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-
-export function useUpdateProfile(callback?: UseMutationCallback) {
-  // 서버의 상태
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: updateProfile,
-
-    // 결과값이 매개변수에 담겨짐
-    onSuccess: updatedProfile => {
-      if (callback?.onSuccess) callback.onSuccess();
-      // 캐시를 업데이트 해줌
-      queryClient.setQueryData<ProfileEntity>(
-        QUERY_KEYS.profile.byId(updatedProfile.id),
-        updatedProfile
-      );
-    },
-    onError: error => {
-      if (callback?.onError) callback.onError(error);
-    },
-  });
-}
-```
-
-### 5.3. 활용하기
-
-- `/src/components/profile/ProfileEditorModal.tsx` 적용
-
-```tsx
-// 프로필 수정 처리
-const { mutate: updateProfile, isPending: isUpdateProfilePending } =
-  useUpdateProfile({
-    onSuccess: () => {
-      close();
-    },
-    onError: error => {
-      toast.error('프로필 수정에 실패하였습니다.', {
+      toast.error('포스트 삭제에 실패하였습니다.', {
         position: 'top-center',
       });
     },
   });
-```
 
-- 전체코드
-
-```tsx
-'use client';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { useSession } from '@/stores/session';
-
-import { Loader } from 'lucide-react';
-import FallBack from '../FallBack';
-import defaultAvatar from '/public/assets/icons/default-avatar.jpg';
-import Image from 'next/image';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import useProfileData from '@/hooks/queries/useProfileData';
-import { useProfileEditor } from '@/stores/profileEditorModal';
-import { useEffect, useRef, useState } from 'react';
-import { updateProfile } from '@/apis/profile';
-import { useUpdateProfile } from '@/hooks/mutations/profile/useUpdateProfile';
-import { toast } from 'sonner';
-
-// 아바타 이미지 타입 정보 : 파일, 미리보기 주소
-type ImageType = {
-  file: File;
-  previewUrl: string;
-};
-
-export default function ProfileEditorModal() {
-  // 사용자 정보 Store 에서 가져옴
-  const session = useSession();
-
-  // 사용자 정보 가져옴
-  const {
-    data: profile,
-    error: fetchProfileError,
-    isPending: isFetchingProfile,
-  } = useProfileData(session?.user.id);
-
-  // Store 적용 : Modal 열고, 닫은 상태를 반영함.
-  const store = useProfileEditor();
-  const {
-    isOpen,
-    actions: { close, open },
-  } = store;
-
-  // 프로필 수정 처리
-  const { mutate: updateProfile, isPending: isUpdateProfilePending } =
-    useUpdateProfile({
-      onSuccess: () => {
-        close();
-      },
-      onError: error => {
-        toast.error('프로필 수정에 실패하였습니다.', {
-          position: 'top-center',
-        });
+  const handleDeleteClick = () => {
+    openAlertModal({
+      title: '게시글 삭제',
+      description: '삭제된 포스트는 되돌릴 수 없습니다. 정말 삭제하시겠습니까?',
+      onPositive: () => {
+        // 포스트 삭제 요청
+        deletePost(id);
       },
     });
-
-  // 사용자 아바타 이미지 파일 관리
-  const [avatarImage, setAvatarImage] = useState<ImageType | null>(null);
-  // 기타 정보
-  const [nickName, setNickName] = useState('');
-  const [bio, setBio] = useState('');
-
-  // input 태그 참조
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  // input 태그에서 이미지가 선택되었다면 처리
-  const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 왜 file 이 아리날 files 라는 복수형인가? 배열로 값이 담겨 오므로
-    if (!e.target.files) {
-      return;
-    }
-    // 배열의 첫번째 이미지 선택
-    const file = e.target.files[0];
-
-    // 메모리 누수 방지책
-    if (avatarImage) {
-      URL.revokeObjectURL(avatarImage.previewUrl);
-    }
-    // 미리보기 이미지 생성
-    setAvatarImage({ file, previewUrl: URL.createObjectURL(file) });
-    e.target.value = '';
   };
-
-  const handleUpdateClick = () => {
-    if (nickName.trim() === '') return;
-    updateProfile({
-      userId: session!.user.id,
-      nickname: nickName,
-      bio,
-      avatarImageFile: avatarImage?.file,
-    });
-  };
-
-  // 최초 상태값 적용하기
-  useEffect(() => {
-    if (isOpen && profile) {
-      setNickName(profile.nickname);
-      setBio(profile.bio);
-      setAvatarImage(null);
-    }
-  }, [profile, isOpen]);
-
   return (
-    <Dialog open={isOpen} onOpenChange={close}>
-      <DialogContent className='flex flex-col gap-5'>
-        <DialogTitle>프로필 수정하기</DialogTitle>
-        {fetchProfileError && <FallBack />}
-        {isFetchingProfile && <Loader />}
-        {!fetchProfileError && !isFetchingProfile && (
-          <>
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>프로필 이미지</div>
-              {/* 파일 이미지 Input 태그 */}
-              <input
-                disabled={isUpdateProfilePending}
-                onChange={handleSelectImage}
-                type='file'
-                ref={fileInputRef}
-                className='hidden'
-                accept='image/*'
-              />
-
-              <Image
-                // 이미지를 클릭하면 file 클릭 처리진행 : current 로 접근
-                onClick={() => {
-                  if (fileInputRef.current) fileInputRef.current.click();
-                }}
-                src={
-                  avatarImage?.previewUrl ||
-                  profile?.avatar_url ||
-                  defaultAvatar
-                }
-                alt='프로필 이미지'
-                className='h-40 w-40 cursor-pointer rounded-full object-cover'
-                width={160}
-                height={160}
-              />
-            </div>
-
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>닉네임</div>
-              <Input
-                disabled={isUpdateProfilePending}
-                value={nickName}
-                onChange={e => setNickName(e.target.value)}
-              />
-            </div>
-
-            <div className='flex flex-col gap-2'>
-              <div className='text-muted-foreground'>소개</div>
-              <Input
-                value={bio}
-                disabled={isUpdateProfilePending}
-                onChange={e => setBio(e.target.value)}
-              />
-            </div>
-
-            <Button onClick={handleUpdateClick} className='cursor-pointer'>
-              {isUpdateProfilePending ? '수정중...' : '수정하기'}
-            </Button>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+    <Button
+      disabled={isDeletePostPending}
+      className='cursor-pointer'
+      variant={'ghost'}
+      onClick={handleDeleteClick}
+    >
+      삭제
+    </Button>
   );
 }
 ```
-
-- 테스트 하기 (버그있음. 각 포스트의 아바타이미지 변경 필요)
-
-### 5.4. Next.js 의 Image URL 정책 설정하기
-
-- `/next.config.ts` 추가하기
-
-```ts
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '프로젝트아이디.supabase.co',
-        // 아래는 생략 가능
-        pathname: '/storage/v1/object/public/**',
-      },
-    ],
-  },
-};
-
-export default nextConfig;
-```
-
-## 6. profiles 테이블에 RLS 설정
-
-### 6.1. 세팅
-
-- Supabase > Authentication > Policies 이동
-- `Enable RLS` 버튼으로 활성화 시킴
-
-### 6.2. RLS 설정
-
-- `Anyone can select profile` > `SELECT` > `Default` > `true` > 저장
-- `Users can create profile` > `INSERT` > `authenicated` > `(select auth.uid()) = id` > 저장
-- `Users can update profile` > `UPDATE` > `authenicated` > `(select auth.uid()) = id` > `(select auth.uid()) = id` > 저장
-- `Users can delete profile` > `DELETE` > `authenicated` > `(select auth.uid()) = id` > 저장
-- 테스트 해보기

@@ -17,7 +17,13 @@ import LikeButton from './LikeButton';
 import defaultAvatar from '/public/assets/icons/default-avatar.jpg';
 import Link from 'next/link';
 
-export default function PostItem({ postId }: { postId: number }) {
+export default function PostItem({
+  postId,
+  type,
+}: {
+  postId: number;
+  type: 'FEED' | 'DETAIL';
+}) {
   // 내가 만든 post 인지 확인
   const session = useSession();
   const userId = session?.user.id;
@@ -26,7 +32,9 @@ export default function PostItem({ postId }: { postId: number }) {
     data: post,
     isPending,
     error,
-  } = usePostByIdData({ postId, type: 'FEED' });
+    // } = usePostByIdData({ postId, type: type });
+    // type 을 외부로 부터 전달 받도록 구성
+  } = usePostByIdData({ postId, type });
 
   if (isPending) return <Loader />;
   if (error) return <FallBack />;
@@ -34,7 +42,9 @@ export default function PostItem({ postId }: { postId: number }) {
   const isMine = userId === post.author.id;
 
   return (
-    <div className='flex flex-col gap-4 border-b pb-8'>
+    <div
+      className={`flex flex-col gap-4  pb-8 ${type === 'FEED' && 'border-b'}`}
+    >
       <div className='flex justify-between'>
         <div className='flex items-start gap-4'>
           {/* 사용자 페이지 이동하기 */}
@@ -49,7 +59,9 @@ export default function PostItem({ postId }: { postId: number }) {
           </Link>
           <div>
             <div className='font-bold hover:underline'>
-              {post.author.nickname}
+              <Link href={`/profile/${post.author.id}`}>
+                {post.author.nickname}
+              </Link>
             </div>
             <div className='text-muted-foreground text-sm'>
               {formatTimeAgo(post.created_at)}
@@ -69,9 +81,15 @@ export default function PostItem({ postId }: { postId: number }) {
       </div>
 
       <div className='flex cursor-pointer flex-col gap-5'>
-        <div className='line-clamp-2 break-words whitespace-pre-wrap'>
-          {post.content}
-        </div>
+        {type === 'FEED' ? (
+          <Link href={`/post/${post.id}`}>
+            <div className='line-clamp-2 break-words whitespace-pre-wrap'>
+              {post.content}
+            </div>
+          </Link>
+        ) : (
+          <div className='break-words whitespace-pre-wrap'>{post.content}</div>
+        )}
 
         <Carousel>
           <CarouselContent>
@@ -95,10 +113,12 @@ export default function PostItem({ postId }: { postId: number }) {
           likeCount={post.like_count}
           isLiked={post.isLiked}
         />
-        <div className='hover:bg-muted flex cursor-pointer items-center gap-2 rounded-xl border-1 p-2 px-4 text-sm'>
-          <MessageCircle className='h-4 w-4' />
-          <span>댓글 달기</span>
-        </div>
+        <Link href={`/post/${post.id}`}>
+          <div className='hover:bg-muted flex cursor-pointer items-center gap-2 rounded-xl border-1 p-2 px-4 text-sm'>
+            <MessageCircle className='h-4 w-4' />
+            <span>댓글 달기</span>
+          </div>
+        </Link>
       </div>
     </div>
   );
