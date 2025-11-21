@@ -37,6 +37,12 @@ export type Comment = CommentEntity & {
   author: ProfileEntity;
 };
 
+// 중첩 댓글 타입
+export type NestedComment = Comment & {
+  parentComment?: Comment;
+  children: NestedComment[]; // 재귀구조 패턴
+};
+
 export type UseMutationCallback = {
   onError?: (error: Error) => void;
   onSuccess?: () => void;
