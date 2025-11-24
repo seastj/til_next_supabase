@@ -7,7 +7,9 @@ const PAGE_SIZE = 5;
 // authorId?: string -포스트의 작성자 아이디 매개변수 전달
 export function useInfinitePostData(authorId?: string) {
   const queryClient = useQueryClient();
+  // 세션이 준비되었는지 파악한다.
   const session = useSession();
+  const userId = session?.user.id;
 
   return useInfiniteQuery({
     // 보관하고 있는 캐시가 같이 업데이트
@@ -17,7 +19,11 @@ export function useInfinitePostData(authorId?: string) {
       ? QUERY_KEYS.posts.list
       : QUERY_KEYS.posts.userList(authorId),
 
+    enabled: Boolean(userId), // 사용자 아이디에 대한 유무
+
     queryFn: async ({ pageParam }) => {
+      if (!userId) throw new Error('사용자 정보가 없습니다.');
+
       const from = pageParam * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 

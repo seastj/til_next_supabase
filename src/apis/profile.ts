@@ -1,32 +1,5 @@
 import supabase from '@/lib/supabase/client';
-import { getRandomNickName } from '@/lib/utils';
 import { deleteImagesInPath, uploadImage } from './image';
-
-// 1. 회원정보 읽기
-// 회원의 ID 를 전달받아서 정보 데이터 반환함.
-// 비동기 작업이므로 asyn 적용
-export async function fetchProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-// 2. 사용자 정보 생성하기
-export async function createProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .insert({ id: userId, nickname: getRandomNickName() })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
 
 // 3. 프로필 업데이트
 export async function updateProfile({
@@ -50,22 +23,35 @@ export async function updateProfile({
 
   // 2. 새로운 아바타 이미지 업로드
   if (avatarImageFile) {
-    // 확장자 알아내기
     const fileExtension = avatarImageFile.name.split('.').pop() || 'webp';
-    // 업로드될 이름이 중복되면 안되므로
     const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExtension}`;
-    // 파일이 업로드 될 경로설정
     const filePath = `${userId}/avatar/${fileName}`;
-    // 실제 파일 업로드
-    newAvatarUrl = await uploadImage({ file: avatarImageFile, filePath });
+
+    newAvatarUrl = await uploadImage({
+      file: avatarImageFile,
+      filePath: filePath,
+    });
   }
 
-  // 3. 프로필 테이블 작업
+  // 3. 프로필 테이블 업데이트 작업
+  // 텍스트 필드만 바뀔 때는 기존 avatar_url을 그대로 두기 위한 payload 구성.
+  const payload: {
+    nickname: string;
+    bio?: string;
+    avatar_url?: string | null;
+  } = { nickname, bio };
+
+  if (avatarImageFile) {
+    // 이미지가 새로 업로드된 경우에만 avatar_url을 덮어쓴다.
+    payload.avatar_url = newAvatarUrl;
+  }
+
   const { data, error } = await supabase
     .from('profiles')
-    .update({ nickname, bio, avatar_url: newAvatarUrl })
+    // .update({ nickname, bio, avatar_url: newAvatarUrl })
+    .update(payload)
     .eq('id', userId)
-    .select('*')
+    .select()
     .single();
 
   if (error) throw error;
