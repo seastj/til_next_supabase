@@ -36,7 +36,16 @@ export async function middleware(request: NextRequest) {
 
     // recovery 세션이 없으면 signin으로 리다이렉트
     if (!session) {
-      return NextResponse.redirect(new URL('/signin', request.url));
+      const redirectUrl = new URL('/signin', request.url);
+      const redirectResponse = NextResponse.redirect(redirectUrl);
+
+      // supabaseResponse(response)에 설정된 쿠키(삭제 포함)를 리다이렉트 응답에 복사
+      const cookiesToSet = response.cookies.getAll();
+      cookiesToSet.forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+
+      return redirectResponse;
     }
 
     // recovery 세션이 있으면 통과
@@ -53,7 +62,16 @@ export async function middleware(request: NextRequest) {
 
     // 세션이 없으면 signin으로 리다이렉트
     if (!session) {
-      return NextResponse.redirect(new URL('/signin', request.url));
+      const redirectUrl = new URL('/signin', request.url);
+      const redirectResponse = NextResponse.redirect(redirectUrl);
+
+      // supabaseResponse(response)에 설정된 쿠키(삭제 포함)를 리다이렉트 응답에 복사
+      const cookiesToSet = response.cookies.getAll();
+      cookiesToSet.forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+
+      return redirectResponse;
     }
 
     // 세션이 있으면 통과

@@ -26,12 +26,25 @@ export default function SessionProvider({ children }: SessionProviderProps) {
     let isMounted = true;
 
     const syncSession = async () => {
+      // getSession 대신 getUser를 사용하여 서버에서 세션 유효성을 검증
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (!isMounted) return;
+      
+      if (error || !user) {
+        // 세션이 유효하지 않으면 아무것도 하지 않거나 세션을 비움
+        setSession(null);
+        return;
+      }
+
+      // 유효한 유저가 있다면 세션 정보를 가져와서 설정
       const {
         data: { session },
       } = await supabase.auth.getSession();
-
-      if (!isMounted) return;
-      isMounted = false;
+      
       setSession(session);
     };
 
